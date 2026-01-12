@@ -1,3 +1,63 @@
+server:
+    port: 8100
+
 spring:
     application:
         name: ManyFoot
+    ai:
+      dashscope:
+          api-key: sk-ab3a9f08465e4fdba372311431588744
+      google:
+          genai:
+              api-key: AI-GENAI-API-KEY
+many-foot:
+    model:
+        vendor: dashscope
+        api-key: sk-ab3a9f08465e4fdba372311431588744
+        base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
+spring.data:
+    redis:
+        # 地址
+        host: test.rxzzy.com
+        # 端口，默认为6379
+        port: 6379
+        # 数据库索引
+        database: 11
+        # redis 密码必须配置
+        password: lihao
+        # 连接超时时间
+        timeout: 10s
+        # 是否开启ssl
+        ssl.enabled: false
+manus:
+    sandbox:
+        # 是否启用沙箱功能
+        enabled: true
+        # Docker 镜像名称
+        image-name: sandbox-image:1.0
+        # 容器内存限制 (MB)
+        memory-limit: 256
+        # CPU 限制 (核心数)
+        cpu-limit: 1.0
+        # 单次执行超时时间 (秒)
+        execution-timeout: 300
+        # 容器空闲超时时间 (分钟)
+        idle-timeout: 30
+        # 最大并发容器数
+        max-containers: 10
+        # 宿主机工作目录基础路径
+        host-workspace-path: /tmp/manus-sandbox
+        # 网络模式 (none/bridge/host)
+        network-mode: bridge
+        # 是否启用网络访问
+        network-enabled: true
+        # Docker 主机地址
+        # Windows Docker Desktop: npipe:////./pipe/docker_engine
+        # Windows TCP (需在Docker Desktop设置中启用): tcp://localhost:2375
+        # Linux: unix:///var/run/docker.sock
+        docker-host: tcp://180.184.42.229:2375
+        # Python 执行器路径
+        # /usr/local/bin/python
+        python-path: /usr/bin/python
+        # Shell 执行器路径
+        shell-path: /bin/bash

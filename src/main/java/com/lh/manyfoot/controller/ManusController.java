@@ -13,8 +13,6 @@ import com.lh.manyfoot.orchestrator.domain.ManusRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.dromara.common.core.domain.R;
-import org.dromara.common.web.core.BaseController;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
@@ -39,7 +37,7 @@ import java.util.concurrent.Executors;
 @RequestMapping("/manus")
 @RequiredArgsConstructor
 @ConditionalOnProperty(prefix = "manus.sandbox", name = "enabled", havingValue = "true", matchIfMissing = true)
-public class ManusController extends BaseController {
+public class ManusController {
 
     private final ManusOrchestrator orchestrator;
     private final AsyncTaskManager asyncTaskManager;
@@ -149,8 +147,8 @@ public class ManusController extends BaseController {
      * @return 是否成功
      */
     @PostMapping("/task/{taskId}/cancel")
-    public R<Void> cancelTask(@PathVariable String taskId) {
-        return toAjax(asyncTaskManager.cancelTask(taskId));
+    public R<Boolean> cancelTask(@PathVariable String taskId) {
+        return R.ok(asyncTaskManager.cancelTask(taskId));
     }
 
     /**

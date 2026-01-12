@@ -13,6 +13,8 @@ import com.lh.manyfoot.event.domain.LoopPhase;
 import com.lh.manyfoot.event.domain.ManusEvent;
 import com.lh.manyfoot.event.domain.SessionState;
 import com.lh.manyfoot.event.service.EventStreamService;
+import com.lh.manyfoot.models.registry.AiModelStorage;
+import com.lh.manyfoot.models.registry.ModelRole;
 import com.lh.manyfoot.orchestrator.domain.LoopContext;
 import com.lh.manyfoot.orchestrator.domain.ManusRequest;
 import com.lh.manyfoot.orchestrator.domain.TaskAnalysisResult;
@@ -51,6 +53,7 @@ public class ManusOrchestrator {
     private final CodeActEngine codeActEngine;
     private final EventStreamService eventStreamService;
     private final MAgentBuilderService agentBuilderService;
+    private final AiModelStorage aiModelStorage;
 
     // 代码块匹配正则
     private static final Pattern PYTHON_CODE_PATTERN = Pattern.compile("```python\\s*([\\s\\S]*?)```", Pattern.MULTILINE);
@@ -239,7 +242,7 @@ public class ManusOrchestrator {
         } catch (Exception e) {
             log.error("分析智能体执行失败，使用默认分析: {}", e.getMessage());
             // 降级处理：使用简单的LLM调用
-            String analysisText = callLLM(context.getModelId(),
+            String analysisText = callLLM(ModelRole.ANALYZE,
                 ManusPrompts.buildAnalyzePrompt(context.getQuery()));
             return TaskAnalysisResult.parseFromResponse(analysisText);
         }
@@ -255,7 +258,7 @@ public class ManusOrchestrator {
             context.getQuery()
         );
 
-        return callLLM(context.getModelId(), prompt);
+        return callLLM(ModelRole.ANALYZE, prompt);
     }
 
 
@@ -307,7 +310,7 @@ public class ManusOrchestrator {
             context.getObservationsSummary()
         );
 
-        return callLLM(context.getModelId(), prompt);
+        return callLLM(ModelRole.OBSERVE, prompt);
     }
 
     /**
@@ -352,10 +355,10 @@ public class ManusOrchestrator {
     /**
      * 调用大模型
      */
-    private String callLLM(Long modelId, String promptText) {
+    private String callLLM(ModelRole role, String promptText) {
         try {
-            ChatModel chatModel = aiModelStorage.getChatModel(modelId)
-                .orElseThrow(() -> new RuntimeException("模型不存在: " + modelId));
+            ChatModel chatModel = aiModelStorage.getChatModel(role)
+                .orElseThrow(() -> new RuntimeException("模型不存在: " + role.name()));
 
             Prompt prompt = new Prompt(promptText);
             ChatResponse response = chatModel.call(prompt);
@@ -367,7 +370,7 @@ public class ManusOrchestrator {
 
             return "";
         } catch (Exception e) {
-            log.error("调用大模型失败: modelId={}", modelId, e);
+            log.error("调用大模型失败: role={}", role.name(), e);
             return "调用大模型失败: " + e.getMessage();
         }
     }

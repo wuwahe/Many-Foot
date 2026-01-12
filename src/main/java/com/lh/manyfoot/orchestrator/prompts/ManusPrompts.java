@@ -101,7 +101,7 @@ public class ManusPrompts {
      * 总结阶段提示词
      */
     public static final String SUMMARY_PROMPT = """
-        你是一个智能总结助手，负责总结任务执行情况。
+        你是一个智能总结助手，负责对用户进行最后的结果总结。
 
         ## 原始任务
         用户请求: {query}
@@ -119,7 +119,7 @@ public class ManusPrompts {
         3. 是否有未完成的工作？
         4. 未完成的工作需要给出原因,告知解决办法
 
-        请用简洁、清晰的语言给出最终总结。
+        请用自然语言简洁、清晰的给出最终结果，无需暴露中间的执行和思考过程。
         """;
 
     /**
@@ -167,8 +167,6 @@ public class ManusPrompts {
         ## 你的能力
         1. **readSandboxFile** - 读取沙箱中的文件，验证文件内容
         2. **listSandboxDirectory** - 列出目录内容，验证文件是否存在
-        3. **executePython** - 执行验证脚本，检查结果正确性
-        4. **executeShell** - 执行验证命令
 
         ## 工作原则
         1. 仔细分析执行结果的每个细节
@@ -182,10 +180,7 @@ public class ManusPrompts {
 
         ### 执行状态
         [成功/失败/部分成功]
-
-        ### 结果分析
-        [分析执行结果的详细内容]
-
+        
         ### 问题发现
         [列出发现的问题，如果没有则填"无"]
 

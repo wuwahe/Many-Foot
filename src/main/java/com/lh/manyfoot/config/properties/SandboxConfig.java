@@ -1,4 +1,4 @@
-package com.lh.manyfoot.config;
+package com.lh.manyfoot.config.properties;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

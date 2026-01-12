@@ -4,6 +4,8 @@ import cn.hutool.core.util.StrUtil;
 import com.alibaba.cloud.ai.graph.NodeOutput;
 import com.alibaba.cloud.ai.graph.agent.ReactAgent;
 import com.alibaba.cloud.ai.graph.exception.GraphRunnerException;
+import com.lh.manyfoot.models.registry.AiModelStorage;
+import com.lh.manyfoot.models.registry.ModelRole;
 import com.lh.manyfoot.orchestrator.domain.Subtask;
 import com.lh.manyfoot.orchestrator.domain.SubtaskType;
 import com.lh.manyfoot.orchestrator.domain.TaskAnalysisResult;
@@ -27,10 +29,7 @@ public class MAgentBuilderService {
 
     private final ToolCallbackProvider toolCallbackProvider;
 
-    /**
-     * 默认分析模型ID（使用较快的模型进行分析）
-     */
-    private static final Long ANALYZER_MODEL_ID = 3L;
+    private final AiModelStorage aiModelStorage;
 
     /**
      * 第一步：评估任务复杂度
@@ -39,7 +38,7 @@ public class MAgentBuilderService {
      * @return 任务复杂度
      */
     public TaskComplexity assessComplexity(String query) {
-        ChatModel chatModel = getChatModel(ANALYZER_MODEL_ID);
+        ChatModel chatModel = getChatModel(ModelRole.ANALYZE);
         String prompt = ManusPrompts.buildComplexityAssessPrompt(query);
 
         try {
@@ -97,7 +96,7 @@ public class MAgentBuilderService {
         }
 
         // 中等或复杂任务使用分析智能体进行分解
-        ChatModel chatModel = getChatModel(ANALYZER_MODEL_ID);
+        ChatModel chatModel = getChatModel(ModelRole.ANALYZE);
 
         ReactAgent analyzerAgent = ReactAgent.builder()
             .name("Analyzer_agent")
@@ -128,7 +127,7 @@ public class MAgentBuilderService {
      * 构建执行器Agent
      */
     public Flux<NodeOutput> buildExecutorAgent(String query, String observations, String sessionId) {
-        ChatModel chatModel = getChatModel(2009464606837432322L);
+        ChatModel chatModel = getChatModel(ModelRole.EXECUTE);
 
         ReactAgent reactAgent = ReactAgent.builder()
             .name("Executor_agent")
@@ -157,7 +156,7 @@ public class MAgentBuilderService {
         String context,
         String sessionId) {
 
-        ChatModel chatModel = getChatModel(2009464606837432322L);
+        ChatModel chatModel = getChatModel(ModelRole.EXECUTE);
 
         String systemPrompt = buildSubtaskExecutorPrompt(subtask, sessionId);
 
@@ -236,7 +235,7 @@ public class MAgentBuilderService {
      * @return 观察分析结果
      */
     public String buildObserverAgent(String query, String executeResult, String observations, String sessionId) {
-        ChatModel chatModel = getChatModel(3L);
+        ChatModel chatModel = getChatModel(ModelRole.OBSERVE);
 
         ReactAgent reactAgent = ReactAgent.builder()
             .name("Observer_agent")
@@ -270,12 +269,7 @@ public class MAgentBuilderService {
     /**
      * 获取ChatModel
      */
-    private ChatModel getChatModel(Long modelId) {
-        return new ChatModel() {
-            @Override
-            public ChatResponse call(Prompt prompt) {
-                return null;
-            }
-        };
+    private ChatModel getChatModel(ModelRole modelRole) {
+        return aiModelStorage.getChatModel(modelRole).get();
     }
 }

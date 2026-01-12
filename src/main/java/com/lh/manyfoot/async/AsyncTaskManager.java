@@ -12,9 +12,9 @@ import com.lh.manyfoot.event.domain.SessionState;
 import com.lh.manyfoot.event.service.EventStreamService;
 import com.lh.manyfoot.orchestrator.ManusOrchestrator;
 import com.lh.manyfoot.orchestrator.domain.ManusRequest;
+import com.lh.manyfoot.service.RedisUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.dromara.common.redis.utils.RedisUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 

@@ -5,7 +5,7 @@ import cn.hutool.core.util.StrUtil;
 import com.lh.manyfoot.codeact.domain.CodeExecutionRequest;
 import com.lh.manyfoot.codeact.domain.CodeExecutionResult;
 import com.lh.manyfoot.codeact.domain.CodeType;
-import com.lh.manyfoot.config.SandboxConfig;
+import com.lh.manyfoot.config.properties.SandboxConfig;
 import com.lh.manyfoot.domain.ExecutionResult;
 import com.lh.manyfoot.domain.SandboxContainer;
 import com.lh.manyfoot.service.SandboxContainerManager;
