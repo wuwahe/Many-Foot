@@ -4,6 +4,8 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.cloud.ai.graph.NodeOutput;
 import com.alibaba.cloud.ai.graph.streaming.StreamingOutput;
+import com.lh.manyfoot.agent.context.AgentContext;
+import com.lh.manyfoot.agent.factory.AgentFactory;
 import com.lh.manyfoot.async.domain.TaskStatus;
 import com.lh.manyfoot.codeact.CodeActEngine;
 import com.lh.manyfoot.codeact.domain.CodeExecutionResult;
@@ -52,7 +54,7 @@ public class ManusOrchestrator {
     private final SandboxContainerManager containerManager;
     private final CodeActEngine codeActEngine;
     private final EventStreamService eventStreamService;
-    private final MAgentBuilderService agentBuilderService;
+    private final AgentFactory agentFactory;
     private final AiModelStorage aiModelStorage;
 
     // 代码块匹配正则
@@ -118,11 +120,16 @@ public class ManusOrchestrator {
             try {
                 // 3.1 执行器智能体根据任务清单进行执行
                 context.setCurrentPhase(LoopPhase.EXECUTE);
-                Flux<NodeOutput> nodeOutputFlux = agentBuilderService.buildExecutorAgent(
-                    context.getQuery(),
-                    context.getObservationsSummary(),
-                    context.getSessionId()
-                );
+
+                // 构建执行器上下文
+                AgentContext executorContext = AgentContext.builder()
+                    .sessionId(context.getSessionId())
+                    .query(context.getQuery())
+                    .observations(context.getObservationsSummary())
+                    .build();
+
+                // 使用 ExecutorAgent 执行
+                Flux<NodeOutput> nodeOutputFlux = agentFactory.getExecutorAgent().execute(executorContext);
 
                 // 处理流式输出，收集执行结果并发送事件
                 String executeResult = processNodeOutputFlux(
@@ -130,7 +137,7 @@ public class ManusOrchestrator {
                     sink,
                     sessionId,
                     context.getCurrentIteration(),
-                    "Executor_agent"
+                    agentFactory.getExecutorAgent().getName()
                 );
 
                 // 发送执行结果汇总事件
@@ -139,12 +146,18 @@ public class ManusOrchestrator {
                 if (StrUtil.isNotBlank(executeResult)) {
                     // 3.2 观察阶段 - 使用观察者智能体对执行结果进行观察和验证
                     context.setCurrentPhase(LoopPhase.OBSERVE);
-                    String observation = agentBuilderService.buildObserverAgent(
-                        context.getQuery(),
-                        executeResult,
-                        context.getObservationsSummary(),
-                        context.getSessionId()
-                    );
+
+                    // 构建观察者上下文
+                    AgentContext observerContext = AgentContext.builder()
+                        .sessionId(context.getSessionId())
+                        .query(context.getQuery())
+                        .executeResult(executeResult)
+                        .observations(context.getObservationsSummary())
+                        .build();
+
+                    // 使用 ObserverAgent 执行
+                    String observation = agentFactory.getObserverAgent().execute(observerContext);
+
                     context.addObservation(observation);
                     emitEvent(sink, sessionId, ManusEvent.observe(sessionId, context.getCurrentIteration(), observation));
 
@@ -230,15 +243,17 @@ public class ManusOrchestrator {
 
     /**
      * 分析阶段 - 使用分析智能体进行任务分解
-     * 参考 TaskRouter 的复杂度评估方案
      */
     private TaskAnalysisResult analyzePhaseWithAgent(LoopContext context) {
         try {
-            // 使用 MAgentBuilderService 构建分析智能体
-            return agentBuilderService.buildAnalyzerAgent(
-                context.getQuery(),
-                context.getSessionId()
-            );
+            // 构建分析器上下文
+            AgentContext analyzerContext = AgentContext.builder()
+                .sessionId(context.getSessionId())
+                .query(context.getQuery())
+                .build();
+
+            // 使用 AnalyzerAgent 执行任务分析
+            return agentFactory.getAnalyzerAgent().analyzeTask(analyzerContext);
         } catch (Exception e) {
             log.error("分析智能体执行失败，使用默认分析: {}", e.getMessage());
             // 降级处理：使用简单的LLM调用
@@ -247,20 +262,6 @@ public class ManusOrchestrator {
             return TaskAnalysisResult.parseFromResponse(analysisText);
         }
     }
-
-    /**
-     * 分析阶段 - 简单模式（直接LLM调用）
-     * @deprecated 使用 {@link #analyzePhaseWithAgent(LoopContext)} 替代
-     */
-    @Deprecated
-    private String analyzePhase(LoopContext context) {
-        String prompt = ManusPrompts.buildAnalyzePrompt(
-            context.getQuery()
-        );
-
-        return callLLM(ModelRole.ANALYZE, prompt);
-    }
-
 
     /**
      * 执行阶段 - 执行代码或调用工具

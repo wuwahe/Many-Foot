@@ -3,7 +3,8 @@
     "allow": [
       "Bash(mvn compile:*)",
       "WebSearch",
-      "WebFetch(domain:mvnrepository.com)"
+      "WebFetch(domain:mvnrepository.com)",
+      "Bash(mvn test:*)"
     ]
   }
 }
