@@ -17,6 +17,8 @@
 
     <properties>
         <java.version>17</java.version>
+        <spring-ai.version>1.1.0</spring-ai.version>
+        <spring-ai-alibaba.version>1.1.0.0</spring-ai-alibaba.version>
     </properties>
 
     <dependencies>
@@ -29,6 +31,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-mcp-client-webflux</artifactId>
+            <version>${spring-ai.version}</version>
         </dependency>
 
         <!-- Guava (覆盖低版本，google-genai 需要 31.0+) -->
@@ -58,7 +66,7 @@
         <dependency>
             <groupId>com.alibaba.cloud.ai</groupId>
             <artifactId>spring-ai-alibaba-agent-framework</artifactId>
-            <version>1.1.0.0-RC2</version>
+            <version>${spring-ai-alibaba.version}</version>
         </dependency>
 
         <!-- Docker Java SDK for Sandbox Container Management -->
@@ -112,28 +120,28 @@
         <dependency>
             <groupId>com.alibaba.cloud.ai</groupId>
             <artifactId>spring-ai-alibaba-starter-dashscope</artifactId>
-            <version>1.0.0.4</version>
+            <version>${spring-ai-alibaba.version}</version>
         </dependency>
 
         <!--openai依赖-->
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-openai</artifactId>
-            <version>1.1.0-M4</version>
+            <version>${spring-ai.version}</version>
         </dependency>
 
         <!--DeepSeek的相关依赖-->
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-deepseek</artifactId>
-            <version>1.1.0-M4</version>
+            <version>${spring-ai.version}</version>
         </dependency>
 
         <!--anthropic依赖-->
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-anthropic</artifactId>
-            <version>1.1.0-M4</version>
+            <version>${spring-ai.version}</version>
         </dependency>
         <!--引入千帆-->
         <dependency>
@@ -145,13 +153,13 @@
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-starter-model-google-genai</artifactId>
-            <version>1.1.0-M4</version>
+            <version>${spring-ai.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-starter-model-ollama</artifactId>
-            <version>1.1.0-M4</version>
+            <version>${spring-ai.version}</version>
         </dependency>
     </dependencies>
 

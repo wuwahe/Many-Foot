@@ -137,6 +137,7 @@ public class ManusPrompts {
         4. **writeSandboxFile** - 写入文件到沙箱
         5. **listSandboxDirectory** - 列出目录内容
         6. **installPythonPackage** - 安装Python包
+        7. **bailian_web_search** -搜索引擎
 
         ## 工作原则
         1. 每次只执行一个操作

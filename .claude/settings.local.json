@@ -4,7 +4,13 @@
       "Bash(mvn compile:*)",
       "WebSearch",
       "WebFetch(domain:mvnrepository.com)",
-      "Bash(mvn test:*)"
+      "Bash(mvn test:*)",
+      "Bash(git config:*)",
+      "Bash(git remote set-url:*)",
+      "Bash(ssh:*)",
+      "Bash(dir %USERPROFILE%.ssh*.pub)",
+      "WebFetch(domain:github.com)",
+      "Bash(mvn clean compile:*)"
     ]
   }
 }

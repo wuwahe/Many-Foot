@@ -39,20 +39,19 @@ public class ComplexityAssessor {
             ChatResponse response = chatModel.call(new Prompt(prompt));
             String result = response.getResult().getOutput().getText();
 
-            if (StrUtil.isNotBlank(result)) {
-                String trimmed = result.trim().toUpperCase();
-                // 处理可能包含额外字符的情况
-                if (trimmed.contains("SIMPLE")) {
-                    return TaskComplexity.SIMPLE;
-                } else if (trimmed.contains("COMPLEX")) {
-                    return TaskComplexity.COMPLEX;
-                } else if (trimmed.contains("MEDIUM")) {
-                    return TaskComplexity.MEDIUM;
-                }
+            if (StrUtil.isBlank(result)) {
+                return TaskComplexity.MEDIUM; // 默认中等复杂度
             }
-            return TaskComplexity.MEDIUM; // 默认中等复杂度
+            String trimmed = result.trim().toUpperCase();
+            // 处理可能包含额外字符的情况
+            return switch (trimmed) {
+                case "SIMPLE" -> TaskComplexity.SIMPLE;
+                case "COMPLEX" -> TaskComplexity.COMPLEX;
+                case "MEDIUM" -> TaskComplexity.MEDIUM;
+                default -> throw new IllegalAccessException("query: " + query + "result: " + result); // 异常
+            };
         } catch (Exception e) {
-            log.warn("评估任务复杂度失败，使用默认值: {}", e.getMessage());
+            log.error("评估任务复杂度失败，使用默认值: {}", e.getMessage());
             return TaskComplexity.MEDIUM;
         }
     }

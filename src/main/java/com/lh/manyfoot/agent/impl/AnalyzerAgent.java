@@ -73,23 +73,19 @@ public class AnalyzerAgent extends AbstractAgent<String> {
      * @return 任务分析结果
      */
     public TaskAnalysisResult analyzeTask(AgentContext context) {
-        // 1. 先评估复杂度
         TaskComplexity complexity = complexityAssessor.assess(context.getQuery());
-        log.info("任务复杂度评估结果: {} - query: {}", complexity, context.getQuery());
 
-        // 2. 简单任务直接返回单步骤分析结果
+        // 简单任务直接返回单步骤分析结果
         if (complexity == TaskComplexity.SIMPLE) {
             return createSimpleTaskResult(context.getQuery());
         }
 
-        // 3. 中等或复杂任务使用分析智能体进行分解
+        // 中等或复杂任务使用分析智能体进行分解
         String analysisText = execute(context);
 
-        // 4. 解析结果
         TaskAnalysisResult result = TaskAnalysisResult.parseFromResponse(analysisText);
         result.setComplexity(complexity);
 
-        log.info("任务分析完成，共 {} 个子任务", result.getSubtasks().size());
         return result;
     }
 
