@@ -31,9 +31,10 @@ public class ReadOnlyToolProvider implements AgentToolProvider {
 
     private final List<ToolCallback> readOnlyTools;
 
-    public ReadOnlyToolProvider(ToolCallbackProvider toolCallbackProvider) {
-        // 从全部工具中筛选只读工具
-        this.readOnlyTools = Arrays.stream(toolCallbackProvider.getToolCallbacks())
+    public ReadOnlyToolProvider(List<ToolCallbackProvider> toolCallbackProviders) {
+        // 从所有 provider 中筛选只读工具
+        this.readOnlyTools = toolCallbackProviders.stream()
+            .flatMap(provider -> Arrays.stream(provider.getToolCallbacks()))
             .filter(tool -> READ_ONLY_TOOL_NAMES.contains(tool.getToolDefinition().name()))
             .collect(Collectors.toList());
 

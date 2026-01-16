@@ -1,4 +1,4 @@
-package com.lh.manyfoot.codeact.tools;
+package com.lh.manyfoot.tools;
 
 import cn.hutool.core.util.StrUtil;
 import com.lh.manyfoot.codeact.CodeActEngine;

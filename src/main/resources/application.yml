@@ -9,7 +9,7 @@ spring:
       api-key: sk-ab3a9f08465e4fdba372311431588744
     google:
       genai:
-        api-key: AI-GENAI-API-KEY
+        api-key: ${GOOGLE_GENAI_API_KEY:}
     mcp:
       client:
         enabled: true
@@ -21,6 +21,13 @@ spring:
             WebSearch:
               url: https://dashscope.aliyuncs.com
               sse-endpoint: /api/v1/mcps/WebSearch/sse
+            WebParser:
+              url: https://dashscope.aliyuncs.com
+              sse-endpoint: /api/v1/mcps/WebParser/sse
+#            antv-visualization-chart:
+#              url: https://dashscope.aliyuncs.com
+#              sse-endpoint: /api/v1/mcps/antv-visualization-chart/sse
+
 many-foot:
   model:
     vendor: dashscope
@@ -66,7 +73,7 @@ manus:
     # Windows Docker Desktop: npipe:////./pipe/docker_engine
     # Windows TCP (需在Docker Desktop设置中启用): tcp://localhost:2375
     # Linux: unix:///var/run/docker.sock
-    docker-host: tcp://180.184.42.229:2375
+    docker-host: tcp://localhost:2375
     # Python 执行器路径
     # /usr/local/bin/python
     python-path: /usr/bin/python
