@@ -4,7 +4,7 @@ import com.lh.manyfoot.agent.core.AbstractToolAgent;
 import com.lh.manyfoot.agent.prompt.ObserverPromptProvider;
 import com.lh.manyfoot.agent.strategy.SyncCallStrategy;
 import com.lh.manyfoot.agent.tool.ReadOnlyToolProvider;
-import com.lh.manyfoot.models.registry.AiModelStorage;
+import com.lh.manyfoot.models.registry.ModelResolver;
 import com.lh.manyfoot.models.registry.ModelRole;
 import org.springframework.stereotype.Component;
 
@@ -22,10 +22,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class ObserverAgent extends AbstractToolAgent<String> {
 
-    public ObserverAgent(AiModelStorage aiModelStorage,
+    public ObserverAgent(ModelResolver modelResolver,
                          ObserverPromptProvider promptProvider,
                          ReadOnlyToolProvider toolProvider) {
-        super(aiModelStorage, promptProvider, new SyncCallStrategy(), toolProvider);
+        super(modelResolver, promptProvider, new SyncCallStrategy(), toolProvider);
     }
 
     @Override

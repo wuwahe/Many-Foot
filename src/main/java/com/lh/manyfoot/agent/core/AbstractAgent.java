@@ -4,7 +4,7 @@ import com.alibaba.cloud.ai.graph.agent.ReactAgent;
 import com.lh.manyfoot.agent.context.AgentContext;
 import com.lh.manyfoot.agent.prompt.AgentPromptProvider;
 import com.lh.manyfoot.agent.strategy.ExecutionStrategy;
-import com.lh.manyfoot.models.registry.AiModelStorage;
+import com.lh.manyfoot.models.registry.ModelResolver;
 import com.lh.manyfoot.models.registry.ModelRole;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ChatModel;
@@ -23,14 +23,14 @@ import java.util.List;
 @Slf4j
 public abstract class AbstractAgent<R> implements Agent<R> {
 
-    protected final AiModelStorage aiModelStorage;
+    protected final ModelResolver modelResolver;
     protected final AgentPromptProvider promptProvider;
     protected final ExecutionStrategy<R> executionStrategy;
 
-    protected AbstractAgent(AiModelStorage aiModelStorage,
+    protected AbstractAgent(ModelResolver modelResolver,
                             AgentPromptProvider promptProvider,
                             ExecutionStrategy<R> executionStrategy) {
-        this.aiModelStorage = aiModelStorage;
+        this.modelResolver = modelResolver;
         this.promptProvider = promptProvider;
         this.executionStrategy = executionStrategy;
     }
@@ -43,13 +43,10 @@ public abstract class AbstractAgent<R> implements Agent<R> {
     public R execute(AgentContext context) {
         log.info("开始执行智能体: name={}, sessionId={}", getName(), context.getSessionId());
 
-        // 1. 构建ReactAgent
         ReactAgent reactAgent = buildReactAgent(context);
 
-        // 2. 构建输入
         String input = promptProvider.buildUserInput(context);
 
-        // 3. 使用策略执行
         R result = executionStrategy.execute(reactAgent, input, context);
 
         log.info("智能体执行完成: name={}", getName());
@@ -72,7 +69,6 @@ public abstract class AbstractAgent<R> implements Agent<R> {
             .systemPrompt(systemPrompt)
             .model(chatModel);
 
-        // 如果有工具则配置工具
         if (tools != null && !tools.isEmpty()) {
             builder.tools(tools.toArray(new ToolCallback[0]));
         }
@@ -81,12 +77,14 @@ public abstract class AbstractAgent<R> implements Agent<R> {
     }
 
     /**
-     * 获取ChatModel
-     *
-     * @return ChatModel实例
+     * 获取ChatModel。
+     * <p>
+     * 调用链：优先 {@code many-foot.ai.agents.{agentName}} 覆盖，
+     * 命中则返回其 primary+fallbacks 装饰后的 ChatModel；
+     * 否则回退到 {@code many-foot.ai.roles.{role}} 绑定。
      */
     protected ChatModel getChatModel() {
-        return aiModelStorage.requireChatModel(getModelRole());
+        return modelResolver.forAgent(getName(), getModelRole());
     }
 
     // ========== 抽象方法，由子类实现 ==========

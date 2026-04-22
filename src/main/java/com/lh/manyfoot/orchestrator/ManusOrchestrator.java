@@ -15,7 +15,7 @@ import com.lh.manyfoot.event.domain.LoopPhase;
 import com.lh.manyfoot.event.domain.ManusEvent;
 import com.lh.manyfoot.event.domain.SessionState;
 import com.lh.manyfoot.event.service.EventStreamService;
-import com.lh.manyfoot.models.registry.AiModelStorage;
+import com.lh.manyfoot.models.registry.ModelResolver;
 import com.lh.manyfoot.models.registry.ModelRole;
 import com.lh.manyfoot.orchestrator.domain.LoopContext;
 import com.lh.manyfoot.orchestrator.domain.ManusRequest;
@@ -55,7 +55,7 @@ public class ManusOrchestrator {
     private final CodeActEngine codeActEngine;
     private final EventStreamService eventStreamService;
     private final AgentFactory agentFactory;
-    private final AiModelStorage aiModelStorage;
+    private final ModelResolver modelResolver;
 
     // 代码块匹配正则
     private static final Pattern PYTHON_CODE_PATTERN = Pattern.compile("```python\\s*([\\s\\S]*?)```", Pattern.MULTILINE);
@@ -358,8 +358,7 @@ public class ManusOrchestrator {
      */
     private String callLLM(ModelRole role, String promptText) {
         try {
-            ChatModel chatModel = aiModelStorage.getChatModel(role)
-                .orElseThrow(() -> new RuntimeException("模型不存在: " + role.name()));
+            ChatModel chatModel = modelResolver.forRole(role);
 
             Prompt prompt = new Prompt(promptText);
             ChatResponse response = chatModel.call(prompt);

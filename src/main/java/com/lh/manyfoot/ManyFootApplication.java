@@ -1,12 +1,12 @@
 package com.lh.manyfoot;
 
-import com.lh.manyfoot.config.properties.AgentModelProperties;
+import com.lh.manyfoot.config.properties.AiProvidersProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 @SpringBootApplication
-@EnableConfigurationProperties(AgentModelProperties.class)
+@EnableConfigurationProperties(AiProvidersProperties.class)
 public class ManyFootApplication {
 
     public static void main(String[] args) {

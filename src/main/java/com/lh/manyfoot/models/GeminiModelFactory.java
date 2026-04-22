@@ -1,7 +1,10 @@
 package com.lh.manyfoot.models;
 
 import com.google.genai.Client;
+import com.lh.manyfoot.config.properties.VendorEnums;
 import com.lh.manyfoot.domain.AiModelConfig;
+import com.lh.manyfoot.models.support.ChatOptionsBinder;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.google.genai.GoogleGenAiChatModel;
@@ -10,38 +13,46 @@ import org.springframework.ai.image.ImageModel;
 import org.springframework.stereotype.Component;
 
 @Component
-public class GeminiModelFactory implements AiModelFactory{
+@Slf4j
+public class GeminiModelFactory implements AiModelFactory {
+
     @Override
     public boolean supports(String providerCode) {
-        return "Gemini".equalsIgnoreCase(providerCode);
+        return VendorEnums.GEMINI.getVendor().equalsIgnoreCase(providerCode);
     }
 
     @Override
     public ChatModel createChatModel(AiModelConfig config) {
-        // 创建支持系统代理的 Gemini Client
-        Client.Builder clientBuilder = Client.builder()
-            .apiKey(config.getApiKey());
+        Client client = Client.builder()
+            .apiKey(config.getApiKey())
+            .build();
 
-        // 配置使用系统的 ProxySelector（支持线程级代理）
-        // 注意：Gemini Client 底层使用的 HTTP 客户端会自动使用系统的 ProxySelector
+        GoogleGenAiChatOptions options = GoogleGenAiChatOptions.builder()
+            .model(config.getModelName())
+            .build();
+        ChatOptionsBinder.bindTemperature(config.getOptions(), options::setTemperature);
+        ChatOptionsBinder.bindTopP(config.getOptions(), options::setTopP);
+        ChatOptionsBinder.bindTopK(config.getOptions(), options::setTopK);
+        ChatOptionsBinder.bindMaxTokens(config.getOptions(), options::setMaxTokens);
+        ChatOptionsBinder.bindStop(config.getOptions(), options::setStopSequences);
+        ChatOptionsBinder.bindFrequencyPenalty(config.getOptions(), options::setFrequencyPenalty);
+        ChatOptionsBinder.bindPresencePenalty(config.getOptions(), options::setPresencePenalty);
 
         return GoogleGenAiChatModel.builder()
-            .genAiClient(clientBuilder.build())
-            .defaultOptions(
-                GoogleGenAiChatOptions.builder()
-                    .model(config.getModelName())
-                    .build()
-            )
+            .genAiClient(client)
+            .defaultOptions(options)
             .build();
     }
 
     @Override
     public EmbeddingModel createEmbeddingModel(AiModelConfig config) {
+        log.info("Gemini Embedding 暂未接入（需要 google-genai-embedding 额外依赖），跳过 provider=[{}]", config.getId());
         return null;
     }
 
     @Override
     public ImageModel createImageModel(AiModelConfig config) {
+        log.info("Gemini 图像生成暂未接入，跳过 provider=[{}]", config.getId());
         return null;
     }
 }

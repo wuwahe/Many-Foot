@@ -3,6 +3,7 @@ package com.lh.manyfoot.models;
 import com.lh.manyfoot.config.properties.VendorEnums;
 import com.lh.manyfoot.domain.AiModelConfig;
 import com.lh.manyfoot.models.support.ChatOptionsBinder;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.document.MetadataMode;
 import org.springframework.ai.embedding.EmbeddingModel;
@@ -11,31 +12,45 @@ import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.ai.openai.OpenAiEmbeddingModel;
 import org.springframework.ai.openai.OpenAiEmbeddingOptions;
-import org.springframework.ai.openai.OpenAiImageModel;
-import org.springframework.ai.openai.OpenAiImageOptions;
 import org.springframework.ai.openai.api.OpenAiApi;
-import org.springframework.ai.openai.api.OpenAiImageApi;
 import org.springframework.ai.retry.RetryUtils;
 import org.springframework.stereotype.Component;
 
 /**
- * 官方 OpenAI 厂商工厂。
+ * OpenAI 协议兼容厂商通用工厂。
  * <p>
- * 非 OpenAI 但协议兼容的厂商（Kimi / 智谱 / SiliconFlow / OpenRouter / Together /
- * Groq / vLLM / DeepSeek-v1 / Qwen compatible-mode 等）请使用
- * {@link OpenAiCompatibleModelFactory}。
+ * 适用于所有遵循 {@code /v1/chat/completions} 与 {@code /v1/embeddings} 接口的厂商，
+ * 典型例子：
+ * <ul>
+ *     <li>Moonshot/Kimi -> {@code https://api.moonshot.cn/v1}</li>
+ *     <li>智谱 GLM -> {@code https://open.bigmodel.cn/api/paas/v4}</li>
+ *     <li>SiliconFlow -> {@code https://api.siliconflow.cn/v1}</li>
+ *     <li>OpenRouter -> {@code https://openrouter.ai/api/v1}</li>
+ *     <li>Together -> {@code https://api.together.xyz/v1}</li>
+ *     <li>Groq -> {@code https://api.groq.com/openai/v1}</li>
+ *     <li>DeepSeek /v1 -> {@code https://api.deepseek.com/v1}</li>
+ *     <li>Qwen compatible-mode -> {@code https://dashscope.aliyuncs.com/compatible-mode/v1}</li>
+ *     <li>vLLM / LM Studio / LocalAI 等自建 -> 配置 local base-url</li>
+ * </ul>
+ * 新增此类厂商零代码成本，只需在 YAML 里加一个 provider 配置。
  */
 @Component
-public class OpenAiModelFactory implements AiModelFactory {
+@Slf4j
+public class OpenAiCompatibleModelFactory implements AiModelFactory {
 
     @Override
     public boolean supports(String providerCode) {
-        return VendorEnums.OPENAI.getVendor().equalsIgnoreCase(providerCode);
+        return VendorEnums.OPENAI_COMPATIBLE.getVendor().equalsIgnoreCase(providerCode);
     }
 
     @Override
     public ChatModel createChatModel(AiModelConfig config) {
-        OpenAiApi openAiApi = buildApi(config);
+        requireBaseUrl(config);
+
+        OpenAiApi openAiApi = OpenAiApi.builder()
+            .apiKey(config.getApiKey() == null ? "" : config.getApiKey())
+            .baseUrl(config.getBaseUrl())
+            .build();
 
         OpenAiChatOptions options = OpenAiChatOptions.builder()
             .model(config.getModelName())
@@ -59,35 +74,31 @@ public class OpenAiModelFactory implements AiModelFactory {
 
     @Override
     public EmbeddingModel createEmbeddingModel(AiModelConfig config) {
-        OpenAiApi openAiApi = buildApi(config);
+        requireBaseUrl(config);
+
+        OpenAiApi openAiApi = OpenAiApi.builder()
+            .apiKey(config.getApiKey() == null ? "" : config.getApiKey())
+            .baseUrl(config.getBaseUrl())
+            .build();
+
         OpenAiEmbeddingOptions options = OpenAiEmbeddingOptions.builder()
             .model(config.getModelName())
             .build();
+
         return new OpenAiEmbeddingModel(openAiApi, MetadataMode.EMBED, options,
             RetryUtils.DEFAULT_RETRY_TEMPLATE);
     }
 
     @Override
     public ImageModel createImageModel(AiModelConfig config) {
-        OpenAiImageApi.Builder apiBuilder = OpenAiImageApi.builder()
-            .apiKey(config.getApiKey());
-        if (config.getBaseUrl() != null && !config.getBaseUrl().isBlank()) {
-            apiBuilder.baseUrl(config.getBaseUrl());
-        }
-
-        OpenAiImageOptions options = OpenAiImageOptions.builder()
-            .model(config.getModelName())
-            .build();
-
-        return new OpenAiImageModel(apiBuilder.build(), options, RetryUtils.DEFAULT_RETRY_TEMPLATE);
+        log.info("厂商 [{}] 未实现图片模型（OpenAI-Compatible 下游差异较大），跳过", config.getId());
+        return null;
     }
 
-    private OpenAiApi buildApi(AiModelConfig config) {
-        OpenAiApi.Builder builder = OpenAiApi.builder()
-            .apiKey(config.getApiKey());
-        if (config.getBaseUrl() != null && !config.getBaseUrl().isBlank()) {
-            builder.baseUrl(config.getBaseUrl());
+    private void requireBaseUrl(AiModelConfig config) {
+        if (config.getBaseUrl() == null || config.getBaseUrl().isBlank()) {
+            throw new IllegalArgumentException(
+                "openai-compatible provider [" + config.getId() + "] 必须配置 base-url");
         }
-        return builder.build();
     }
 }

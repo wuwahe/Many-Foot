@@ -3,7 +3,7 @@ package com.lh.manyfoot.agent.core;
 import com.lh.manyfoot.agent.prompt.AgentPromptProvider;
 import com.lh.manyfoot.agent.strategy.ExecutionStrategy;
 import com.lh.manyfoot.agent.tool.AgentToolProvider;
-import com.lh.manyfoot.models.registry.AiModelStorage;
+import com.lh.manyfoot.models.registry.ModelResolver;
 import org.springframework.ai.tool.ToolCallback;
 
 import java.util.List;
@@ -19,11 +19,11 @@ public abstract class AbstractToolAgent<R> extends AbstractAgent<R> implements T
 
     protected final AgentToolProvider toolProvider;
 
-    protected AbstractToolAgent(AiModelStorage aiModelStorage,
+    protected AbstractToolAgent(ModelResolver modelResolver,
                                 AgentPromptProvider promptProvider,
                                 ExecutionStrategy<R> executionStrategy,
                                 AgentToolProvider toolProvider) {
-        super(aiModelStorage, promptProvider, executionStrategy);
+        super(modelResolver, promptProvider, executionStrategy);
         this.toolProvider = toolProvider;
     }
 

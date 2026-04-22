@@ -4,7 +4,7 @@ import com.lh.manyfoot.agent.context.AgentContext;
 import com.lh.manyfoot.agent.core.AbstractAgent;
 import com.lh.manyfoot.agent.prompt.AnalyzerPromptProvider;
 import com.lh.manyfoot.agent.strategy.SyncCallStrategy;
-import com.lh.manyfoot.models.registry.AiModelStorage;
+import com.lh.manyfoot.models.registry.ModelResolver;
 import com.lh.manyfoot.models.registry.ModelRole;
 import com.lh.manyfoot.orchestrator.domain.Subtask;
 import com.lh.manyfoot.orchestrator.domain.SubtaskType;
@@ -33,10 +33,10 @@ public class AnalyzerAgent extends AbstractAgent<String> {
 
     private final ComplexityAssessor complexityAssessor;
 
-    public AnalyzerAgent(AiModelStorage aiModelStorage,
+    public AnalyzerAgent(ModelResolver modelResolver,
                          AnalyzerPromptProvider promptProvider,
                          ComplexityAssessor complexityAssessor) {
-        super(aiModelStorage, promptProvider, new SyncCallStrategy());
+        super(modelResolver, promptProvider, new SyncCallStrategy());
         this.complexityAssessor = complexityAssessor;
     }
 

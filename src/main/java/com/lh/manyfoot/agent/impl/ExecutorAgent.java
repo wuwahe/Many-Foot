@@ -7,7 +7,7 @@ import com.lh.manyfoot.agent.core.StreamingAgent;
 import com.lh.manyfoot.agent.prompt.ExecutorPromptProvider;
 import com.lh.manyfoot.agent.strategy.StreamingStrategy;
 import com.lh.manyfoot.agent.tool.FullToolProvider;
-import com.lh.manyfoot.models.registry.AiModelStorage;
+import com.lh.manyfoot.models.registry.ModelResolver;
 import com.lh.manyfoot.models.registry.ModelRole;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
@@ -27,10 +27,10 @@ import reactor.core.publisher.Flux;
 public class ExecutorAgent extends AbstractToolAgent<Flux<NodeOutput>>
     implements StreamingAgent<NodeOutput> {
 
-    public ExecutorAgent(AiModelStorage aiModelStorage,
+    public ExecutorAgent(ModelResolver modelResolver,
                          ExecutorPromptProvider promptProvider,
                          FullToolProvider toolProvider) {
-        super(aiModelStorage, promptProvider, new StreamingStrategy(), toolProvider);
+        super(modelResolver, promptProvider, new StreamingStrategy(), toolProvider);
     }
 
     @Override

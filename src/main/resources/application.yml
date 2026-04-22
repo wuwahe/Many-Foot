@@ -5,8 +5,9 @@ spring:
   application:
     name: ManyFoot
   ai:
+    # 以下两段为 Spring AI starter 的自动装配开关，保留兼容（部分 starter 会读它）
     dashscope:
-      api-key: sk-ab3a9f08465e4fdba372311431588744
+      api-key: sk-xxxxxxxxxxxxxxx
     google:
       genai:
         api-key: ${GOOGLE_GENAI_API_KEY:}
@@ -28,11 +29,85 @@ spring:
 #              url: https://dashscope.aliyuncs.com
 #              sse-endpoint: /api/v1/mcps/antv-visualization-chart/sse
 
+# -----------------------------------------------------------------------------
+# many-foot.ai: 多厂商 AI 模型配置（由 AiProvidersProperties 绑定）
+#
+# 结构：
+#   providers.<id>: 具体 provider 实例（vendor + model + key 等）
+#   roles.<ROLE>:   按角色 (ANALYZE/EXECUTE/OBSERVE) 指定 primary + fallbacks
+#   agents.<name>:  按 Agent#getName() 覆盖，优先级高于 roles
+#   default:        全局兜底 provider id
+#
+# 扩展新厂商：绝大多数 OpenAI 兼容厂商（Kimi/智谱/SiliconFlow/OpenRouter/
+#   Together/Groq/vLLM/DeepSeek /v1 等）只需新增一个 vendor: openai-compatible
+#   的 provider，无需改 Java 代码。
+# -----------------------------------------------------------------------------
 many-foot:
-  model:
-    vendor: dashscope
-    api-key: sk-ab3a9f08465e4fdba372311431588744
-    base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
+  ai:
+    providers:
+      qwen-max:
+        vendor: dashscope
+        model: qwen-max
+        api-key: sk-xxxxxxxxxxxxxx
+        options:
+          temperature: 0.3
+      qwen3-coder:
+        vendor: openai-compatible
+        model: qwen3-coder-plus
+        api-key: sk-xxxxxxxxxxxxxxxxxxxx
+        base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
+      qwen-plus:
+        vendor: dashscope
+        model: qwen-plus
+        api-key: sk-xxxxxxxxxxxxxxxxxxx
+
+#      # 其它厂商示例（按需解开注释并填 key）
+#      gpt-4o:
+#        vendor: openai
+#        model: gpt-4o
+#        api-key: ${OPENAI_KEY}
+#      kimi:
+#        vendor: openai-compatible
+#        model: moonshot-v1-32k
+#        api-key: ${MOONSHOT_KEY}
+#        base-url: https://api.moonshot.cn/v1
+#      zhipu-glm4:
+#        vendor: openai-compatible
+#        model: glm-4-plus
+#        api-key: ${ZHIPU_KEY}
+#        base-url: https://open.bigmodel.cn/api/paas/v4
+#      gemini-pro:
+#        vendor: gemini
+#        model: gemini-2.5-pro
+#        api-key: ${GEMINI_KEY}
+#      claude-sonnet:
+#        vendor: anthropic
+#        model: claude-sonnet-4
+#        api-key: ${ANTHROPIC_KEY}
+#      ollama-local:
+#        vendor: ollama
+#        model: qwen2.5:14b
+#        base-url: http://localhost:11434
+
+    roles:
+      ANALYZE:
+        primary: qwen-max
+        fallbacks: [qwen-plus]
+      EXECUTE:
+        primary: qwen3-coder
+        fallbacks: [qwen-max]
+      OBSERVE:
+        primary: qwen-plus
+        fallbacks: [qwen-max]
+
+#    agents:
+#      Subtask_Executor_agent:
+#        role: EXECUTE
+#        primary: qwen3-coder
+#        fallbacks: [qwen-max]
+
+    default-provider: qwen-max
+
 spring.data:
   redis:
     # 地址

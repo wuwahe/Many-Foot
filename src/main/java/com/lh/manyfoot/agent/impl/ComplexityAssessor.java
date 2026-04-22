@@ -1,7 +1,7 @@
 package com.lh.manyfoot.agent.impl;
 
 import cn.hutool.core.util.StrUtil;
-import com.lh.manyfoot.models.registry.AiModelStorage;
+import com.lh.manyfoot.models.registry.ModelResolver;
 import com.lh.manyfoot.models.registry.ModelRole;
 import com.lh.manyfoot.orchestrator.domain.TaskComplexity;
 import com.lh.manyfoot.orchestrator.prompts.ManusPrompts;
@@ -23,7 +23,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ComplexityAssessor {
 
-    private final AiModelStorage aiModelStorage;
+    private final ModelResolver modelResolver;
 
     /**
      * 评估任务复杂度
@@ -32,7 +32,7 @@ public class ComplexityAssessor {
      * @return 任务复杂度
      */
     public TaskComplexity assess(String query) {
-        ChatModel chatModel = aiModelStorage.requireChatModel(ModelRole.ANALYZE);
+        ChatModel chatModel = modelResolver.forRole(ModelRole.ANALYZE);
         String prompt = ManusPrompts.buildComplexityAssessPrompt(query);
 
         try {

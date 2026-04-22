@@ -8,7 +8,7 @@ import com.lh.manyfoot.agent.core.StreamingAgent;
 import com.lh.manyfoot.agent.prompt.SubtaskExecutorPromptProvider;
 import com.lh.manyfoot.agent.strategy.StreamingStrategy;
 import com.lh.manyfoot.agent.tool.FullToolProvider;
-import com.lh.manyfoot.models.registry.AiModelStorage;
+import com.lh.manyfoot.models.registry.ModelResolver;
 import com.lh.manyfoot.models.registry.ModelRole;
 import com.lh.manyfoot.orchestrator.domain.Subtask;
 import org.springframework.ai.chat.model.ChatModel;
@@ -34,10 +34,10 @@ import java.util.List;
 public class SubtaskExecutorAgent extends AbstractToolAgent<Flux<NodeOutput>>
     implements StreamingAgent<NodeOutput> {
 
-    public SubtaskExecutorAgent(AiModelStorage aiModelStorage,
+    public SubtaskExecutorAgent(ModelResolver modelResolver,
                                 SubtaskExecutorPromptProvider promptProvider,
                                 FullToolProvider toolProvider) {
-        super(aiModelStorage, promptProvider, new StreamingStrategy(), toolProvider);
+        super(modelResolver, promptProvider, new StreamingStrategy(), toolProvider);
     }
 
     @Override
