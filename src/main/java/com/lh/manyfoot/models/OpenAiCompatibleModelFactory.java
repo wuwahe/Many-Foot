@@ -19,17 +19,20 @@ import org.springframework.stereotype.Component;
 /**
  * OpenAI 协议兼容厂商通用工厂。
  * <p>
- * 适用于所有遵循 {@code /v1/chat/completions} 与 {@code /v1/embeddings} 接口的厂商，
+ * 适用于所有遵循 {@code /v1/chat/completions} 与 {@code /v1/embeddings} 接口的厂商。
+ * Spring AI OpenAiApi 会自行追加 {@code /v1/chat/completions} 与 {@code /v1/embeddings}，
+ * 因此 YAML 中的 {@code base-url} 应配置到版本号之前；若误填了结尾的 {@code /v1}，
+ * 本工厂会自动归一化，避免请求变成 {@code /v1/v1/chat/completions}。
+ * <p>
  * 典型例子：
  * <ul>
- *     <li>Moonshot/Kimi -> {@code https://api.moonshot.cn/v1}</li>
- *     <li>智谱 GLM -> {@code https://open.bigmodel.cn/api/paas/v4}</li>
- *     <li>SiliconFlow -> {@code https://api.siliconflow.cn/v1}</li>
- *     <li>OpenRouter -> {@code https://openrouter.ai/api/v1}</li>
- *     <li>Together -> {@code https://api.together.xyz/v1}</li>
- *     <li>Groq -> {@code https://api.groq.com/openai/v1}</li>
- *     <li>DeepSeek /v1 -> {@code https://api.deepseek.com/v1}</li>
- *     <li>Qwen compatible-mode -> {@code https://dashscope.aliyuncs.com/compatible-mode/v1}</li>
+ *     <li>Moonshot/Kimi -> {@code https://api.moonshot.cn}</li>
+ *     <li>SiliconFlow -> {@code https://api.siliconflow.cn}</li>
+ *     <li>OpenRouter -> {@code https://openrouter.ai/api}</li>
+ *     <li>Together -> {@code https://api.together.xyz}</li>
+ *     <li>Groq -> {@code https://api.groq.com/openai}</li>
+ *     <li>DeepSeek -> {@code https://api.deepseek.com}</li>
+ *     <li>Qwen compatible-mode -> {@code https://dashscope.aliyuncs.com/compatible-mode}</li>
  *     <li>vLLM / LM Studio / LocalAI 等自建 -> 配置 local base-url</li>
  * </ul>
  * 新增此类厂商零代码成本，只需在 YAML 里加一个 provider 配置。
@@ -49,7 +52,7 @@ public class OpenAiCompatibleModelFactory implements AiModelFactory {
 
         OpenAiApi openAiApi = OpenAiApi.builder()
             .apiKey(config.getApiKey() == null ? "" : config.getApiKey())
-            .baseUrl(config.getBaseUrl())
+            .baseUrl(normalizeBaseUrlForSpringOpenAi(config.getBaseUrl()))
             .build();
 
         OpenAiChatOptions options = OpenAiChatOptions.builder()
@@ -78,7 +81,7 @@ public class OpenAiCompatibleModelFactory implements AiModelFactory {
 
         OpenAiApi openAiApi = OpenAiApi.builder()
             .apiKey(config.getApiKey() == null ? "" : config.getApiKey())
-            .baseUrl(config.getBaseUrl())
+            .baseUrl(normalizeBaseUrlForSpringOpenAi(config.getBaseUrl()))
             .build();
 
         OpenAiEmbeddingOptions options = OpenAiEmbeddingOptions.builder()
@@ -100,5 +103,16 @@ public class OpenAiCompatibleModelFactory implements AiModelFactory {
             throw new IllegalArgumentException(
                 "openai-compatible provider [" + config.getId() + "] 必须配置 base-url");
         }
+    }
+
+    static String normalizeBaseUrlForSpringOpenAi(String baseUrl) {
+        String normalized = baseUrl.trim();
+        while (normalized.endsWith("/")) {
+            normalized = normalized.substring(0, normalized.length() - 1);
+        }
+        if (normalized.endsWith("/v1")) {
+            return normalized.substring(0, normalized.length() - "/v1".length());
+        }
+        return normalized;
     }
 }

@@ -5,38 +5,26 @@ FROM ubuntu:22.04 AS base
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Asia/Shanghai
 
-# 更新系统并安装基础工具
-RUN apt-get update && apt-get upgrade -y && \
-    apt-get install -y \
+# 安装运行时必需工具，避免引入大体积构建/编辑类依赖
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    bash \
     curl \
     wget \
     git \
-    vim \
-    nano \
-    tree \
-    htop \
-    build-essential \
-    cmake \
-    pkg-config \
-    net-tools \
-    iputils-ping \
-    telnet \
     zip \
     unzip \
     tar \
     gzip \
     ca-certificates \
-    gnupg \
-    lsb-release \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 # Python 环境阶段
 FROM base AS python-runtime
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     python3.11 \
-    python3.11-dev \
     python3.11-venv \
     python3-pip \
     && rm -rf /var/lib/apt/lists/*
@@ -45,30 +33,10 @@ RUN apt-get update && apt-get install -y \
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.11 1 && \
     update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
 
-# 升级 pip
-RUN python -m pip install --upgrade pip setuptools wheel
-
-# 安装常用 Python 库
-RUN pip install --no-cache-dir \
+# 仅预装最常用的轻量运行时库，其余库通过沙箱内 pip 按需安装
+RUN pip install --no-cache-dir --default-timeout=120 --retries 5 --progress-bar off \
     requests \
     httpx \
-    beautifulsoup4 \
-    lxml \
-    pandas \
-    numpy \
-    openpyxl \
-    xlrd \
-    scipy \
-    matplotlib \
-    seaborn \
-    scikit-learn \
-    pytest \
-    pytest-cov \
-    black \
-    flake8 \
-    pylint \
-    ipython \
-    jupyter \
     python-dotenv \
     pyyaml \
     python-dateutil
