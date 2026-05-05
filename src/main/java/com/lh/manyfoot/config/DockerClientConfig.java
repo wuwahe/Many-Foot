@@ -23,7 +23,7 @@ import java.time.Duration;
 @Slf4j
 @Configuration
 @RequiredArgsConstructor
-@ConditionalOnProperty(prefix = "manus.sandbox", name = "enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(prefix = "many-foot.sandbox", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class DockerClientConfig {
 
     private final SandboxConfig sandboxConfig;

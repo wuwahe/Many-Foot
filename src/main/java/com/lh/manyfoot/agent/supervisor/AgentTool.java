@@ -3,6 +3,7 @@ package com.lh.manyfoot.agent.supervisor;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lh.manyfoot.agent.context.AgentContext;
+import com.lh.manyfoot.agent.context.SessionContextHolder;
 import com.lh.manyfoot.agent.core.Agent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.tool.ToolCallback;
@@ -247,18 +248,26 @@ public class AgentTool implements ToolCallback {
     /**
      * 构建子会话 ID
      * <p>
-     * 格式：{agentName}_{uuid}
+     * 优先从 SessionContextHolder 获取父会话ID，确保父子代理会话ID一致。
+     * 如果父会话ID不存在，则生成新的会话ID（格式：{agentName}_{uuid}）。
      * <p>
-     * 这种格式确保：
+     * 这种设计确保：
      * <ul>
-     *   <li>全局唯一性（UUID 保证）</li>
+     *   <li>父子代理会话ID一致性（便于日志追踪和沙箱共享）</li>
+     *   <li>向后兼容性（在没有父会话ID时仍能正常工作）</li>
      *   <li>可追溯性（包含智能体名称，便于日志分析）</li>
-     *   <li>与父会话的关联性（父级可通过 agentName 过滤子会话）</li>
      * </ul>
      *
      * @return 子会话 ID
      */
     private String buildChildSessionId() {
+        String parentSessionId = SessionContextHolder.getSessionId();
+        if (parentSessionId != null) {
+            log.debug("子代理继承父会话ID: parentSessionId={}", parentSessionId);
+            return parentSessionId;
+        }
+        // 没有父会话ID时，生成新的会话ID（向后兼容）
+        log.debug("未找到父会话ID，生成新的子会话ID");
         return agent.getName() + "_" + UUID.randomUUID().toString().substring(0, 8);
     }
 

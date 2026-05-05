@@ -41,7 +41,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 @Service
-@ConditionalOnProperty(prefix = "manus.sandbox", name = "enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(prefix = "many-foot.sandbox", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class SandboxContainerManager {
 
     private final DockerClient dockerClient;
@@ -53,8 +53,8 @@ public class SandboxContainerManager {
     }
 
     // Redis 键前缀
-    private static final String CONTAINER_KEY_PREFIX = "manus:container:";
-    private static final String SESSION_CONTAINER_KEY = "manus:session:container:";
+    private static final String CONTAINER_KEY_PREFIX = "many-foot:container:";
+    private static final String SESSION_CONTAINER_KEY = "many-foot:session:container:";
 
     // 本地容器缓存
     private final Map<String, SandboxContainer> containerCache = new ConcurrentHashMap<>();

@@ -18,14 +18,14 @@ import java.util.List;
 
 /**
  * CodeAct 执行引擎
- * 参考 Manus 的 CodeAct 架构，将代码作为统一的动作空间
+ * 参考 ManyFoot 的 CodeAct 架构，将代码作为统一的动作空间
  *
  * @author airx
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@ConditionalOnProperty(prefix = "manus.sandbox", name = "enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(prefix = "many-foot.sandbox", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class CodeActEngine {
 
     private final SandboxContainerManager containerManager;

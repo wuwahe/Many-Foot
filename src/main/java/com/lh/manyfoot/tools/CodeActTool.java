@@ -15,14 +15,13 @@ import java.util.List;
 /**
  * CodeAct 工具类
  * 提供给 Agent 调用的代码执行工具
- * 参考 Manus 的 CodeAct 架构设计
  *
  * @author airx
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@ConditionalOnProperty(prefix = "manus.sandbox", name = "enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(prefix = "many-foot.sandbox", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class CodeActTool {
 
     private final CodeActEngine codeActEngine;

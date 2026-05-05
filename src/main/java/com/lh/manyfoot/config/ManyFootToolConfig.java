@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class ManusToolConfig {
+public class ManyFootToolConfig {
 
     /**
      * 本地 CodeAct 工具提供者

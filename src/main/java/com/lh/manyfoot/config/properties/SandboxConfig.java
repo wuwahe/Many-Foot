@@ -6,13 +6,13 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * 沙箱容器配置类
- * 参考 Manus 的沙箱执行模式配置
+ * 参考 ManyFoot 的沙箱执行模式配置
  *
  * @author airx
  */
 @Data
 @Configuration
-@ConfigurationProperties(prefix = "manus.sandbox")
+@ConfigurationProperties(prefix = "many-foot.sandbox")
 public class SandboxConfig {
 
     /**
@@ -23,7 +23,7 @@ public class SandboxConfig {
     /**
      * Docker 镜像名称
      */
-    private String imageName = "manus-sandbox:python3.11";
+    private String imageName = "many-foot-sandbox:python3.11";
 
     /**
      * 容器内存限制 (MB)
@@ -59,7 +59,7 @@ public class SandboxConfig {
     /**
      * 宿主机工作目录基础路径
      */
-    private String hostWorkspacePath = "/tmp/manus-sandbox";
+    private String hostWorkspacePath = "/tmp/many-foot-sandbox";
 
     /**
      * 网络模式 (none/bridge/host)
@@ -81,7 +81,7 @@ public class SandboxConfig {
     /**
      * 容器前缀名称
      */
-    private String containerPrefix = "manus-sandbox-";
+    private String containerPrefix = "many-foot-sandbox-";
 
     /**
      * 是否以特权模式运行 (不推荐)

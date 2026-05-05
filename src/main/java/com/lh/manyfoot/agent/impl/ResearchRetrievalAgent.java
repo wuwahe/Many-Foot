@@ -7,6 +7,7 @@ import com.lh.manyfoot.agent.domain.ResearchBrief;
 import com.lh.manyfoot.agent.prompt.ResearchRetrievalPromptProvider;
 import com.lh.manyfoot.agent.strategy.SyncCallStrategy;
 import com.lh.manyfoot.agent.support.SpecialistJsonUtils;
+import com.lh.manyfoot.agent.tool.FullToolProvider;
 import com.lh.manyfoot.agent.tool.ReadOnlyToolProvider;
 import com.lh.manyfoot.models.registry.ModelResolver;
 import com.lh.manyfoot.models.registry.ModelRole;
@@ -22,7 +23,7 @@ public class ResearchRetrievalAgent extends AbstractToolAgent<String> {
 
     public ResearchRetrievalAgent(ModelResolver modelResolver,
                                   ResearchRetrievalPromptProvider promptProvider,
-                                  ReadOnlyToolProvider toolProvider) {
+                                  FullToolProvider toolProvider) {
         super(modelResolver, promptProvider, new SyncCallStrategy(), toolProvider);
     }
 
