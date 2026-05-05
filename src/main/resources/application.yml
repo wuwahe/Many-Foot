@@ -48,19 +48,19 @@ many-foot:
       qwen-max:
         vendor: openai-compatible
         model: mimo-v2.5-pro
-        api-key: ${MANY_FOOT_API_KEY:}
+        api-key: 
         base-url: ${MANY_FOOT_BASE_URL:}
         options:
           temperature: 0.3
       qwen3-coder:
         vendor: openai-compatible
         model: mimo-v2.5-pro
-        api-key: ${MANY_FOOT_API_KEY:}
+        api-key: 
         base-url: ${MANY_FOOT_BASE_URL:}
       qwen-plus:
         vendor: openai-compatible
         model: mimo-v2.5-pro
-        api-key: ${MANY_FOOT_API_KEY:}
+        api-key: 
         base-url: ${MANY_FOOT_BASE_URL:}
 
 #      # 其它厂商示例（按需解开注释并填 key）
@@ -119,13 +119,13 @@ many-foot:
 spring.data:
   redis:
     # 地址
-    host: ${REDIS_HOST:localhost}
+    host: 
     # 端口，默认为6379
     port: 6379
     # 数据库索引
     database: 1
     # redis 密码必须配置
-    password: ${REDIS_PASSWORD:}
+    password: 
     # 连接超时时间
     timeout: 10s
     # 是否开启ssl
@@ -156,7 +156,7 @@ manus:
     # Windows Docker Desktop: npipe:////./pipe/docker_engine
     # Windows TCP (需在Docker Desktop设置中启用): tcp://localhost:2375
     # Linux: unix:///var/run/docker.sock
-    docker-host: ${MANY_FOOT_DOCKER_HOST:tcp://localhost:2375}
+    docker-host: 
     # Python 执行器路径
     # /usr/local/bin/python
     python-path: /usr/bin/python
