@@ -13,7 +13,7 @@ spring:
         api-key: ${GOOGLE_GENAI_API_KEY:}
     mcp:
       client:
-        enabled: true
+        enabled: false
         name: ${spring.application.name}
         version: 1.0.0
         request-timeout: 30s
@@ -34,7 +34,7 @@ spring:
 #
 # 结构：
 #   providers.<id>: 具体 provider 实例（vendor + model + key 等）
-#   roles.<ROLE>:   按角色 (ANALYZE/EXECUTE/OBSERVE) 指定 primary + fallbacks
+#   roles.<ROLE>:   按 Supervisor 专业智能体角色指定 primary + fallbacks
 #   agents.<name>:  按 Agent#getName() 覆盖，优先级高于 roles
 #   default:        全局兜底 provider id
 #
@@ -46,20 +46,22 @@ many-foot:
   ai:
     providers:
       qwen-max:
-        vendor: dashscope
-        model: qwen-max
-        api-key: sk-xxxxxxxxxxxxxx
+        vendor: openai-compatible
+        model: mimo-v2.5-pro
+        api-key: ${MANY_FOOT_API_KEY:}
+        base-url: ${MANY_FOOT_BASE_URL:}
         options:
           temperature: 0.3
       qwen3-coder:
         vendor: openai-compatible
-        model: qwen3-coder-plus
-        api-key: sk-xxxxxxxxxxxxxxxxxxxx
-        base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
+        model: mimo-v2.5-pro
+        api-key: ${MANY_FOOT_API_KEY:}
+        base-url: ${MANY_FOOT_BASE_URL:}
       qwen-plus:
-        vendor: dashscope
-        model: qwen-plus
-        api-key: sk-xxxxxxxxxxxxxxxxxxx
+        vendor: openai-compatible
+        model: mimo-v2.5-pro
+        api-key: ${MANY_FOOT_API_KEY:}
+        base-url: ${MANY_FOOT_BASE_URL:}
 
 #      # 其它厂商示例（按需解开注释并填 key）
 #      gpt-4o:
@@ -90,19 +92,25 @@ many-foot:
 #        base-url: http://localhost:11434
 
     roles:
-      ANALYZE:
+      PLANNER_ROUTER:
         primary: qwen-max
         fallbacks: [qwen-plus]
-      EXECUTE:
+      RESEARCH_RETRIEVAL:
+        primary: qwen-max
+        fallbacks: [qwen-plus]
+      DOMAIN_SPECIALIST:
+        primary: qwen-max
+        fallbacks: [qwen-plus]
+      TOOL_ACTION_EXECUTOR:
         primary: qwen3-coder
         fallbacks: [qwen-max]
-      OBSERVE:
+      CRITIC_VERIFIER:
         primary: qwen-plus
         fallbacks: [qwen-max]
 
 #    agents:
-#      Subtask_Executor_agent:
-#        role: EXECUTE
+#      Tool_Action_Executor_agent:
+#        role: TOOL_ACTION_EXECUTOR
 #        primary: qwen3-coder
 #        fallbacks: [qwen-max]
 
@@ -111,13 +119,13 @@ many-foot:
 spring.data:
   redis:
     # 地址
-    host: test.rxzzy.com
+    host: ${REDIS_HOST:localhost}
     # 端口，默认为6379
     port: 6379
     # 数据库索引
-    database: 11
+    database: 1
     # redis 密码必须配置
-    password: lihao
+    password: ${REDIS_PASSWORD:}
     # 连接超时时间
     timeout: 10s
     # 是否开启ssl
@@ -148,7 +156,7 @@ manus:
     # Windows Docker Desktop: npipe:////./pipe/docker_engine
     # Windows TCP (需在Docker Desktop设置中启用): tcp://localhost:2375
     # Linux: unix:///var/run/docker.sock
-    docker-host: tcp://localhost:2375
+    docker-host: ${MANY_FOOT_DOCKER_HOST:tcp://localhost:2375}
     # Python 执行器路径
     # /usr/local/bin/python
     python-path: /usr/bin/python

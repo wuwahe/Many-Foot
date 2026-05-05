@@ -49,6 +49,14 @@ public abstract class AbstractAgent<R> implements Agent<R> {
 
         R result = executionStrategy.execute(reactAgent, input, context);
 
+        if (log.isDebugEnabled()) {
+            String preview = result != null ? result.toString() : "null";
+            if (preview.length() > 300) {
+                preview = preview.substring(0, 300) + "...";
+            }
+            log.debug("智能体执行结果: name={}, resultType={}, resultPreview={}",
+                    getName(), result != null ? result.getClass().getSimpleName() : "null", preview);
+        }
         log.info("智能体执行完成: name={}", getName());
         return result;
     }

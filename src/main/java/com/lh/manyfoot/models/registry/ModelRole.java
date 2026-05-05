@@ -4,25 +4,45 @@ import lombok.Getter;
 
 /**
  * 模型角色枚举
- * 定义智能体中不同角色使用的模型类型
+ * 定义 Supervisor 专业智能体中不同角色使用的模型类型
  */
 @Getter
 public enum ModelRole {
 
     /**
-     * 分析角色 - 用于复杂推理和规划，通常使用较强的模型
+     * 规划与路由智能体
      */
-    ANALYZE("analyze", "分析推理"),
+    PLANNER_ROUTER("planner-router", "规划与路由智能体"),
 
     /**
-     * 执行角色 - 用于执行具体任务，平衡能力和成本
+     * 检索与证据智能体
      */
-    EXECUTE("execute", "任务执行"),
+    RESEARCH_RETRIEVAL("research-retrieval", "检索与证据智能体"),
 
     /**
-     * 观察角色 - 用于监控和简单判断，使用轻量级模型
+     * 领域专家智能体
      */
-    OBSERVE("observe", "状态观察");
+    DOMAIN_SPECIALIST("domain-specialist", "领域专家智能体"),
+
+    /**
+     * 工具与事务执行智能体
+     */
+    TOOL_ACTION_EXECUTOR("tool-action-executor", "工具与事务执行智能体"),
+
+    /**
+     * 评审与验证智能体
+     */
+    CRITIC_VERIFIER("critic-verifier", "评审与验证智能体"),
+
+    /**
+     * 普通对话智能体
+     */
+    CHAT("chat", "普通对话智能体"),
+
+    /**
+     * Supervisor 编排智能体
+     */
+    SUPERVISOR("supervisor", "Supervisor 编排智能体");
 
     private final String code;
     private final String description;

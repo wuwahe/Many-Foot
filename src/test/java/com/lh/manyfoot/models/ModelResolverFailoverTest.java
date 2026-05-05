@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * 纯 JUnit 单测：不起 Spring 上下文，专门验证 {@link ModelResolver} + {@link FailoverChatModel}
- * 在 ANALYZE/EXECUTE/OBSERVE 三条链路上的路由和降级行为。
+ * 在 Supervisor 专业智能体角色链路上的路由和降级行为。
  */
 class ModelResolverFailoverTest {
 
@@ -77,9 +77,11 @@ class ModelResolverFailoverTest {
         resolver.registerChatModel("qwen3-coder", qwenCoder);
 
         Map<ModelRole, Binding> roles = new EnumMap<>(ModelRole.class);
-        roles.put(ModelRole.ANALYZE, binding("qwen-max", List.of("qwen-plus")));
-        roles.put(ModelRole.EXECUTE, binding("qwen3-coder", List.of("qwen-max")));
-        roles.put(ModelRole.OBSERVE, binding("qwen-plus", List.of("qwen-max")));
+        roles.put(ModelRole.PLANNER_ROUTER, binding("qwen-max", List.of("qwen-plus")));
+        roles.put(ModelRole.RESEARCH_RETRIEVAL, binding("qwen-max", List.of("qwen-plus")));
+        roles.put(ModelRole.DOMAIN_SPECIALIST, binding("qwen-max", List.of("qwen-plus")));
+        roles.put(ModelRole.TOOL_ACTION_EXECUTOR, binding("qwen3-coder", List.of("qwen-max")));
+        roles.put(ModelRole.CRITIC_VERIFIER, binding("qwen-plus", List.of("qwen-max")));
         resolver.bindRoles(roles);
 
         resolver.setDefaultProviderId("qwen-max");
@@ -87,16 +89,18 @@ class ModelResolverFailoverTest {
 
     @Test
     void forRole_shouldReturnPrimary_onHappyPath() {
-        // ANALYZE / EXECUTE / OBSERVE 三链路分别拿到对应 primary
-        assertEquals("qwen-max", textOf(resolver.forRole(ModelRole.ANALYZE)));
-        assertEquals("qwen3-coder", textOf(resolver.forRole(ModelRole.EXECUTE)));
-        assertEquals("qwen-plus", textOf(resolver.forRole(ModelRole.OBSERVE)));
+        // 五类专业智能体角色分别拿到对应 primary
+        assertEquals("qwen-max", textOf(resolver.forRole(ModelRole.PLANNER_ROUTER)));
+        assertEquals("qwen-max", textOf(resolver.forRole(ModelRole.RESEARCH_RETRIEVAL)));
+        assertEquals("qwen-max", textOf(resolver.forRole(ModelRole.DOMAIN_SPECIALIST)));
+        assertEquals("qwen3-coder", textOf(resolver.forRole(ModelRole.TOOL_ACTION_EXECUTOR)));
+        assertEquals("qwen-plus", textOf(resolver.forRole(ModelRole.CRITIC_VERIFIER)));
     }
 
     @Test
     void forRole_shouldFailoverOnTransientError() {
         qwenCoder.nextError = new TransientAiException("simulated 429");
-        ChatResponse resp = resolver.forRole(ModelRole.EXECUTE).call(new Prompt("hi"));
+        ChatResponse resp = resolver.forRole(ModelRole.TOOL_ACTION_EXECUTOR).call(new Prompt("hi"));
         assertEquals("qwen-max", assistant(resp));
         assertEquals(1, qwenCoder.callCount(), "primary 应被调用一次");
         assertEquals(1, qwenMax.callCount(), "fallback 应接管一次");
@@ -106,29 +110,29 @@ class ModelResolverFailoverTest {
     void forRole_shouldNotRetryOnBusinessError() {
         qwenCoder.nextError = new IllegalArgumentException("bad prompt");
         assertThrows(IllegalArgumentException.class,
-            () -> resolver.forRole(ModelRole.EXECUTE).call(new Prompt("hi")));
+            () -> resolver.forRole(ModelRole.TOOL_ACTION_EXECUTOR).call(new Prompt("hi")));
         assertEquals(0, qwenMax.callCount(), "业务异常不应触发 fallback");
     }
 
     @Test
     void forAgent_shouldOverrideRole() {
         AiProvidersProperties.AgentBinding ab = new AiProvidersProperties.AgentBinding();
-        ab.setRole(ModelRole.EXECUTE);
+        ab.setRole(ModelRole.TOOL_ACTION_EXECUTOR);
         ab.setPrimary("qwen-max");
         ab.setFallbacks(List.of("qwen-plus"));
-        resolver.bindAgents(Map.of("Subtask_Executor_agent", ab));
+        resolver.bindAgents(Map.of("Tool_Action_Executor_agent", ab));
 
-        // 虽然 EXECUTE 的 role 绑定是 qwen3-coder，但 agent 覆盖指向 qwen-max
-        ChatModel m = resolver.forAgent("Subtask_Executor_agent", ModelRole.EXECUTE);
+        // 虽然 TOOL_ACTION_EXECUTOR 的 role 绑定是 qwen3-coder，但 agent 覆盖指向 qwen-max
+        ChatModel m = resolver.forAgent("Tool_Action_Executor_agent", ModelRole.TOOL_ACTION_EXECUTOR);
         assertEquals("qwen-max", textOf(m));
         // 非覆盖 agent 仍走 role
-        assertEquals("qwen3-coder", textOf(resolver.forAgent("Unknown_agent", ModelRole.EXECUTE)));
+        assertEquals("qwen3-coder", textOf(resolver.forAgent("Unknown_agent", ModelRole.TOOL_ACTION_EXECUTOR)));
     }
 
     @Test
     void forAgent_shouldFallbackToDefaultWhenRoleUnbound() {
         resolver.bindRoles(Map.of()); // 清空 role 绑定
-        ChatModel m = resolver.forAgent("Any", ModelRole.ANALYZE);
+        ChatModel m = resolver.forAgent("Any", ModelRole.PLANNER_ROUTER);
         assertNotNull(m);
         // 默认 qwen-max
         assertEquals("qwen-max", textOf(m));

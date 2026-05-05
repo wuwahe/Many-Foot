@@ -1,6 +1,5 @@
 package com.lh.manyfoot.agent.context;
 
-import com.lh.manyfoot.orchestrator.domain.Subtask;
 import lombok.Builder;
 import lombok.Data;
 
@@ -31,11 +30,6 @@ public class AgentContext {
      * 历史观察结果
      */
     private String observations;
-
-    /**
-     * 当前子任务（仅SubtaskExecutor使用）
-     */
-    private Subtask currentSubtask;
 
     /**
      * 执行器的执行结果（仅Observer使用）

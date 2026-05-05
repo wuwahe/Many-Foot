@@ -25,12 +25,12 @@ import java.util.Map;
  *         timeout-ms: 60000
  *         headers: { X-Custom: ... }
  *     roles:
- *       ANALYZE:
+ *       PLANNER_ROUTER:
  *         primary: gpt-4o
  *         fallbacks: [qwen-max, kimi]
  *     agents:
- *       SubtaskExecutorAgent:
- *         role: EXECUTE
+ *       Tool_Action_Executor_agent:
+ *         role: TOOL_ACTION_EXECUTOR
  *         primary: claude-sonnet
  *         fallbacks: [qwen3-coder]
  *     default: qwen-max
@@ -46,7 +46,7 @@ public class AiProvidersProperties {
     private Map<String, ProviderDef> providers = new HashMap<>();
 
     /**
-     * 角色级绑定：ANALYZE / EXECUTE / OBSERVE -> 主备 provider。
+     * 角色级绑定：Supervisor 专业智能体角色 -> 主备 provider。
      */
     private Map<ModelRole, Binding> roles = new HashMap<>();
 

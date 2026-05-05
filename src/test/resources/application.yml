@@ -1,0 +1,45 @@
+spring:
+  ai:
+    dashscope:
+      api-key: test-api-key
+      agent:
+        api-key: test-api-key
+    google:
+      genai:
+        api-key: test-api-key
+        project-id: test-project
+    mcp:
+      client:
+        enabled: false
+  data:
+    redis:
+      enabled: false
+
+manus:
+  sandbox:
+    enabled: false
+
+many-foot:
+  ai:
+    providers:
+      test-model:
+        vendor: dashscope
+        model: qwen-plus
+        api-key: test-api-key
+    roles:
+      PLANNER_ROUTER:
+        primary: test-model
+        fallbacks: []
+      RESEARCH_RETRIEVAL:
+        primary: test-model
+        fallbacks: []
+      DOMAIN_SPECIALIST:
+        primary: test-model
+        fallbacks: []
+      TOOL_ACTION_EXECUTOR:
+        primary: test-model
+        fallbacks: []
+      CRITIC_VERIFIER:
+        primary: test-model
+        fallbacks: []
+    default-provider: test-model

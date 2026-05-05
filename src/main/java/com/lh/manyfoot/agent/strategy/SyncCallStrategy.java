@@ -21,7 +21,16 @@ public class SyncCallStrategy implements ExecutionStrategy<String> {
         try {
             log.debug("同步执行智能体: sessionId={}", context.getSessionId());
             AssistantMessage response = agent.call(input);
-            return response.getText();
+
+            String text = response.getText();
+            if (text == null || text.isBlank()) {
+                // LLM 最后一步可能只发了 tool call 没有文本回复
+                log.warn("智能体返回空文本: name={}, hasToolCalls={}",
+                        context.getSessionId(),
+                        response.getToolCalls() != null && !response.getToolCalls().isEmpty());
+                return response.getText();
+            }
+            return text;
         } catch (GraphRunnerException e) {
             log.error("同步执行失败: sessionId={}", context.getSessionId(), e);
             throw new AgentExecutionException("智能体执行失败", e);
