@@ -13,6 +13,7 @@ import com.lh.manyfoot.models.registry.ModelRole;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * 评审与验证 Agent，负责独立事实、规则、安全和格式复核。
@@ -63,5 +64,14 @@ public class CriticVerifierAgent extends AbstractToolAgent<String> {
                 .build()))
             .requiredFixes(List.of("重新生成可解析的 ReviewReport JSON"))
             .build();
+    }
+
+    @Override
+    protected Set<String> getAvailableTools() {
+        return Set.of(
+                "readSandboxFile",
+                "parseSandboxDocument",
+                "listSandboxDirectory"
+        );
     }
 }

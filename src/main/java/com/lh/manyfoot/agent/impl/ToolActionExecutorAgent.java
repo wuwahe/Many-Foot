@@ -13,6 +13,7 @@ import com.lh.manyfoot.models.registry.ModelRole;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * 工具与事务执行 Agent，负责明确动作的真实执行。
@@ -57,4 +58,18 @@ public class ToolActionExecutorAgent extends AbstractToolAgent<String> {
             .error("模型响应未能解析为 ActionResult JSON")
             .build();
     }
+
+    @Override
+    protected Set<String> getAvailableTools() {
+        return Set.of(
+                "writeSandboxFile",
+                "readSandboxFile",
+                "parseSandboxDocument",
+                "listSandboxDirectory",
+                "executeShell",
+                "executePython",
+                "installPythonPackage"
+        );
+    }
+
 }

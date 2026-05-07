@@ -14,6 +14,7 @@ import com.lh.manyfoot.models.registry.ModelRole;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Set;
 
 @Component
 public class ChatAgent extends AbstractToolAgent<String> {
@@ -45,5 +46,14 @@ public class ChatAgent extends AbstractToolAgent<String> {
             .query(message)
             .build();
         return execute(context);
+    }
+
+    @Override
+    protected Set<String> getAvailableTools() {
+        return Set.of(
+                "readSandboxFile",
+                "parseSandboxDocument",
+                "listSandboxDirectory"
+        );
     }
 }

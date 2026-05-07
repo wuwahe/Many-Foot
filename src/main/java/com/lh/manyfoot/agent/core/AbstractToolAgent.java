@@ -7,6 +7,7 @@ import com.lh.manyfoot.models.registry.ModelResolver;
 import org.springframework.ai.tool.ToolCallback;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * 支持工具调用的抽象智能体基类
@@ -15,7 +16,7 @@ import java.util.List;
  * @param <R> 执行结果类型
  * @author airx
  */
-public abstract class AbstractToolAgent<R> extends AbstractAgent<R> implements ToolAwareAgent<R> {
+public abstract class AbstractToolAgent<R> extends AbstractAgent<R> {
 
     protected final AgentToolProvider toolProvider;
 
@@ -27,18 +28,30 @@ public abstract class AbstractToolAgent<R> extends AbstractAgent<R> implements T
         this.toolProvider = toolProvider;
     }
 
-    @Override
-    public List<ToolCallback> getAvailableTools() {
-        return toolProvider.getTools();
-    }
+    /**
+     * 获取可用的工具列表
+     *
+     * @return 可用的工具列表
+     */
+    protected abstract Set<String> getAvailableTools();
 
-    @Override
-    public boolean requiresTools() {
-        return true;
-    }
+//    @Override
+//    public List<ToolCallback> getAvailableTools() {
+//        return toolProvider.getTools();
+//    }
+//
+//    @Override
+//    public boolean requiresTools() {
+//        return true;
+//    }
 
     @Override
     protected List<ToolCallback> getTools() {
-        return getAvailableTools();
+        Set<String> availableTools = getAvailableTools();
+        return toolProvider.getTools().stream()
+            .filter(tool -> availableTools.contains(tool.getToolDefinition().name()))
+                .toList();
     }
+
+
 }

@@ -14,6 +14,7 @@ import com.lh.manyfoot.models.registry.ModelRole;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * 检索与证据 Agent，负责并发检索后的证据整理。
@@ -44,21 +45,28 @@ public class ResearchRetrievalAgent extends AbstractToolAgent<String> {
 
     public EvidencePack research(String sessionId, ResearchBrief brief) {
         AgentContext context = AgentContext.builder()
-            .sessionId(sessionId)
-            .query(SpecialistJsonUtils.toJson(brief))
-            .build();
+                .sessionId(sessionId)
+                .query(SpecialistJsonUtils.toJson(brief))
+                .build();
         String response = execute(context);
         return SpecialistJsonUtils.parseResponse(response, EvidencePack.class, () -> fallbackEvidence(response));
     }
 
     private EvidencePack fallbackEvidence(String response) {
         return EvidencePack.builder()
-            .confidence(0.0)
-            .informationGaps(List.of("模型响应未能解析为 EvidencePack JSON"))
-            .facts(List.of(EvidencePack.Fact.builder()
-                .claim(response)
                 .confidence(0.0)
-                .build()))
-            .build();
+                .informationGaps(List.of("模型响应未能解析为 EvidencePack JSON"))
+                .facts(List.of(EvidencePack.Fact.builder()
+                        .claim(response)
+                        .confidence(0.0)
+                        .build()))
+                .build();
+    }
+
+    @Override
+    protected Set<String> getAvailableTools() {
+        return Set.of(
+                "bailian_web_search"
+        );
     }
 }

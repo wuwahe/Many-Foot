@@ -24,10 +24,7 @@ public class PlannerRouterPromptProvider implements AgentPromptProvider {
 
             ## 可路由目标 Agent
             - RESEARCH_RETRIEVAL_AGENT: 检索与证据
-            - CODE_SPECIALIST_AGENT: 代码/技术专家，负责技术分析、架构方案、代码实现草稿和工程风险
-            - BUSINESS_SPECIALIST_AGENT: 通用业务专家，负责业务规则、流程、方案取舍和业务风险
             - DOCUMENT_SPECIALIST_AGENT: 文档/需求专家，负责需求澄清、文档草稿、验收标准和表达一致性
-            - DATA_SPECIALIST_AGENT: 数据/SQL/分析专家，负责数据口径、SQL 草稿、指标分析和统计风险
             - DOMAIN_SPECIALIST_AGENT: 兼容入口；仅当无法判断具体专业方向时使用，执行时会自动选择合适专家
             - TOOL_ACTION_EXECUTOR_AGENT: 工具与事务执行
             - CRITIC_VERIFIER_AGENT: 评审与验证

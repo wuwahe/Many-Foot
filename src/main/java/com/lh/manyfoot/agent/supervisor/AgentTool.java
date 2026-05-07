@@ -159,8 +159,9 @@ public class AgentTool implements ToolCallback {
             // 记录父级追踪信息（便于日志分析和问题定位）
             subContext.setAttribute("parent.toolName", agent.getName());
             subContext.setAttribute("parent.callType", "AgentTool");
-            subContext.setAttribute("parent.originalInput", truncate(toolInput, 200));
+            subContext.setAttribute("parent.originalInput", truncate(toolInput, 500));
 
+            log.info("{}子智能体接收的信息：{}", agent.getName(), toolInput);
             // 调用期间切换线程上下文，保证子 Agent 再次调度时继续继承附件元数据。
             SessionContextHolder.setAgentContext(subContext);
             String result;
@@ -173,6 +174,7 @@ public class AgentTool implements ToolCallback {
             log.info("AgentTool 子智能体执行完成: agent={}, resultLength={}",
                     agent.getName(), result != null ? result.length() : 0);
 
+            log.info("{} 子智能体返回的信息：{}",agent.getName(), result);
             return result != null ? result : "";
 
         } catch (Exception e) {

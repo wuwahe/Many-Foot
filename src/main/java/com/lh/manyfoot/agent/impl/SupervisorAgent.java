@@ -3,8 +3,10 @@ package com.lh.manyfoot.agent.impl;
 import com.alibaba.cloud.ai.graph.NodeOutput;
 import com.lh.manyfoot.agent.context.AgentContext;
 import com.lh.manyfoot.agent.core.AbstractToolAgent;
+import com.lh.manyfoot.agent.core.Agent;
 import com.lh.manyfoot.agent.core.StreamingAgent;
 import com.lh.manyfoot.agent.prompt.SupervisorPromptProvider;
+import com.lh.manyfoot.agent.registry.AgentRegistry;
 import com.lh.manyfoot.agent.strategy.StreamingStrategy;
 import com.lh.manyfoot.agent.strategy.SyncCallStrategy;
 import com.lh.manyfoot.agent.supervisor.SupervisorToolProvider;
@@ -12,6 +14,9 @@ import com.lh.manyfoot.models.registry.ModelRole;
 import com.lh.manyfoot.models.registry.ModelResolver;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
+
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Supervisor 编排智能体 —— 多智能体协作系统的顶层调度者。
@@ -69,7 +74,10 @@ import reactor.core.publisher.Flux;
 @Component
 public class SupervisorAgent extends AbstractToolAgent<Flux<NodeOutput>>
         implements StreamingAgent<NodeOutput> {
-/**
+
+    private final AgentRegistry agentRegistry;
+
+    /**
      * 构造器注入。
      * <p>
      * 依赖说明：
@@ -92,8 +100,10 @@ public class SupervisorAgent extends AbstractToolAgent<Flux<NodeOutput>>
      */
     public SupervisorAgent(ModelResolver modelResolver,
                            SupervisorPromptProvider promptProvider,
-                           SupervisorToolProvider toolProvider) {
+                           SupervisorToolProvider toolProvider,
+                           AgentRegistry agentRegistry) {
         super(modelResolver, promptProvider, new StreamingStrategy(), toolProvider);
+        this.agentRegistry = agentRegistry;
     }
 
     /**
@@ -147,5 +157,12 @@ public class SupervisorAgent extends AbstractToolAgent<Flux<NodeOutput>>
     @Override
     public Flux<NodeOutput> stream(AgentContext context) {
         return execute(context);
+    }
+
+    @Override
+    protected Set<String> getAvailableTools() {
+        return agentRegistry.getAllAgents().stream()
+                .map(Agent::getName)
+                .collect(Collectors.toSet());
     }
 }

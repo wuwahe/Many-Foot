@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 /**
  * 只读工具提供者
  * 只提供读取类的工具（适用于Observer智能体）
- * 包含：readSandboxFile, listSandboxDirectory
+ * 包含：readSandboxFile, parseSandboxDocument, listSandboxDirectory
  *
  * @author airx
  */
@@ -26,6 +26,7 @@ public class ReadOnlyToolProvider implements AgentToolProvider {
      */
     private static final Set<String> READ_ONLY_TOOL_NAMES = Set.of(
         "readSandboxFile",
+        "parseSandboxDocument",
         "listSandboxDirectory"
     );
 
