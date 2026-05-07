@@ -42,6 +42,7 @@ public abstract class AbstractAgent<R> implements Agent<R> {
     @Override
     public R execute(AgentContext context) {
         log.info("开始执行智能体: name={}, sessionId={}", getName(), context.getSessionId());
+        context.setMultimodalInputEnabled(modelResolver.supportsMultimodalForAgent(getName(), getModelRole()));
 
         ReactAgent reactAgent = buildReactAgent(context);
 

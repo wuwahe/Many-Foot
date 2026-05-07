@@ -4,6 +4,9 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -15,6 +18,9 @@ import java.util.Map;
 @Data
 @Builder
 public class AgentContext {
+
+    /** 当前智能体所使用的 ChatModel 是否允许接收多模态 Media 输入。 */
+    public static final String MULTIMODAL_INPUT_ENABLED_ATTRIBUTE = "multimodalInputEnabled";
 
     /**
      * 会话ID
@@ -46,6 +52,59 @@ public class AgentContext {
      */
     @Builder.Default
     private Map<String, Object> attributes = new HashMap<>();
+
+    /**
+     * 上传附件元数据。
+     * <p>
+     * 图片和普通文件在这里被显式区分，避免把所有路径都拼进 query 后让模型猜测。
+     */
+    @Builder.Default
+    private List<AgentAttachment> attachments = new ArrayList<>();
+
+    /**
+     * 获取图片附件。
+     */
+    public List<AgentAttachment> getImageAttachments() {
+        if (attachments == null || attachments.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return attachments.stream()
+                .filter(AgentAttachment::isImage)
+                .toList();
+    }
+
+    /**
+     * 获取普通文件附件。
+     */
+    public List<AgentAttachment> getFileAttachments() {
+        if (attachments == null || attachments.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return attachments.stream()
+                .filter(attachment -> !attachment.isImage())
+                .toList();
+    }
+
+    /**
+     * 是否包含图片附件。
+     */
+    public boolean hasImageAttachments() {
+        return !getImageAttachments().isEmpty();
+    }
+
+    /**
+     * 当前执行链路是否允许把图片附件作为 Spring AI Media 传给模型。
+     */
+    public boolean isMultimodalInputEnabled() {
+        return Boolean.TRUE.equals(getAttribute(MULTIMODAL_INPUT_ENABLED_ATTRIBUTE));
+    }
+
+    /**
+     * 设置当前执行链路是否允许把图片附件作为 Spring AI Media 传给模型。
+     */
+    public void setMultimodalInputEnabled(boolean multimodalInputEnabled) {
+        setAttribute(MULTIMODAL_INPUT_ENABLED_ATTRIBUTE, multimodalInputEnabled);
+    }
 
     /**
      * 设置属性

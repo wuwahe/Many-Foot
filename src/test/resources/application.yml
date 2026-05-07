@@ -15,11 +15,9 @@ spring:
     redis:
       enabled: false
 
-manus:
+many-foot:
   sandbox:
     enabled: false
-
-many-foot:
   ai:
     providers:
       test-model:
@@ -40,6 +38,12 @@ many-foot:
         primary: test-model
         fallbacks: []
       CRITIC_VERIFIER:
+        primary: test-model
+        fallbacks: []
+      CHAT:
+        primary: test-model
+        fallbacks: []
+      SUPERVISOR:
         primary: test-model
         fallbacks: []
     default-provider: test-model

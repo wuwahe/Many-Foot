@@ -2,6 +2,8 @@ package com.lh.manyfoot.controller.dto;
 
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * AI 对话请求体
  *
@@ -20,4 +22,6 @@ public class ChatRequest {
      * 用户消息内容
      */
     private String message;
+
+    private List<String> filePaths;
 }

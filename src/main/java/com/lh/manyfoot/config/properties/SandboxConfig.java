@@ -102,4 +102,13 @@ public class SandboxConfig {
      * Shell 执行器路径
      */
     private String shellPath = "/bin/bash";
+
+    /**
+     * 应用本机附件临时存储路径。
+     * <p>
+     * 容器与应用不在同一台机器时，多模态模型仍需从本地读取图片文件。
+     * 上传文件时会在本机此路径下保存一份副本，供 {@code AgentMessageFactory} 构建
+     * {@code Media} 使用。路径格式：{localAttachmentPath}/{sessionId}/data/{filename}。
+     */
+    private String localAttachmentPath = System.getProperty("java.io.tmpdir") + "/many-foot-attachments";
 }

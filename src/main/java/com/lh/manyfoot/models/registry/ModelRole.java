@@ -37,7 +37,7 @@ public enum ModelRole {
     /**
      * 普通对话智能体
      */
-    CHAT("chat", "普通对话智能体"),
+    CHAT("chat", "多模态文档分析助手"),
 
     /**
      * Supervisor 编排智能体

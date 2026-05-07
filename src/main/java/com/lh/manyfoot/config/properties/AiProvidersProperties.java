@@ -77,6 +77,8 @@ public class AiProvidersProperties {
         private Integer timeoutMs;
         /** 附加 HTTP Header。 */
         private Map<String, String> headers = new HashMap<>();
+        /** 是否支持在 Chat 消息中直接接收图片等多模态输入。 */
+        private boolean multimodal;
     }
 
     /** 角色绑定：primary + fallbacks。 */

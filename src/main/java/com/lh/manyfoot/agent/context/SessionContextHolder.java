@@ -48,12 +48,35 @@ public class SessionContextHolder {
     private static final InheritableThreadLocal<String> SESSION_ID_HOLDER = new InheritableThreadLocal<>();
 
     /**
+     * 当前请求的 AgentContext，用于 Supervisor 通过 ToolCallback 调用子 Agent 时传递附件等上下文元数据。
+     */
+    private static final InheritableThreadLocal<AgentContext> AGENT_CONTEXT_HOLDER = new InheritableThreadLocal<>();
+
+    /**
      * 设置当前线程的会话ID
      *
      * @param sessionId 会话ID
      */
     public static void setSessionId(String sessionId) {
         SESSION_ID_HOLDER.set(sessionId);
+    }
+
+    /**
+     * 设置当前线程的智能体上下文。
+     *
+     * @param context 智能体上下文
+     */
+    public static void setAgentContext(AgentContext context) {
+        AGENT_CONTEXT_HOLDER.set(context);
+    }
+
+    /**
+     * 获取当前线程的智能体上下文。
+     *
+     * @return 智能体上下文，如果未设置则返回 null
+     */
+    public static AgentContext getAgentContext() {
+        return AGENT_CONTEXT_HOLDER.get();
     }
 
     /**
@@ -92,6 +115,7 @@ public class SessionContextHolder {
      */
     public static void clear() {
         SESSION_ID_HOLDER.remove();
+        AGENT_CONTEXT_HOLDER.remove();
     }
 
     /**

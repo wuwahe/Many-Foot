@@ -1,18 +1,27 @@
 package com.lh.manyfoot.agent.impl;
 
+import com.lh.manyfoot.agent.context.AgentAttachment;
 import com.lh.manyfoot.agent.context.AgentContext;
 import com.lh.manyfoot.agent.core.AbstractAgent;
+import com.lh.manyfoot.agent.core.AbstractToolAgent;
+import com.lh.manyfoot.agent.core.StreamingAgent;
 import com.lh.manyfoot.agent.prompt.ChatAgentPromptProvider;
+import com.lh.manyfoot.agent.prompt.ToolActionExecutorPromptProvider;
 import com.lh.manyfoot.agent.strategy.SyncCallStrategy;
+import com.lh.manyfoot.agent.tool.FullToolProvider;
 import com.lh.manyfoot.models.registry.ModelResolver;
 import com.lh.manyfoot.models.registry.ModelRole;
 import org.springframework.stereotype.Component;
 
-@Component
-public class ChatAgent extends AbstractAgent<String> {
+import java.util.List;
 
-    public ChatAgent(ModelResolver modelResolver, ChatAgentPromptProvider promptProvider) {
-        super(modelResolver, promptProvider, new SyncCallStrategy());
+@Component
+public class ChatAgent extends AbstractToolAgent<String> {
+
+    public ChatAgent(ModelResolver modelResolver,
+                                   ToolActionExecutorPromptProvider promptProvider,
+                                   FullToolProvider toolProvider) {
+        super(modelResolver, promptProvider, new SyncCallStrategy(), toolProvider);
     }
 
     @Override
@@ -22,7 +31,7 @@ public class ChatAgent extends AbstractAgent<String> {
 
     @Override
     public String getDescription() {
-        return "普通对话智能体，处理简单的日常对话和问答";
+        return "多模态文档分析助手，支持图片理解、文档提取、图表分析和日常对话";
     }
 
     @Override

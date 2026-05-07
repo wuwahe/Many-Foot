@@ -2,6 +2,7 @@ package com.lh.manyfoot.agent.supervisor;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.lh.manyfoot.agent.context.AgentAttachment;
 import com.lh.manyfoot.agent.context.AgentContext;
 import com.lh.manyfoot.agent.context.SessionContextHolder;
 import com.lh.manyfoot.agent.core.Agent;
@@ -10,6 +11,8 @@ import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.definition.ToolDefinition;
 
 import java.util.UUID;
+import java.util.HashMap;
+import java.util.ArrayList;
 
 /**
  * 智能体工具适配器
@@ -143,10 +146,14 @@ public class AgentTool implements ToolCallback {
                 agent.getName(), childSessionId, taskInput.length());
 
         try {
-            // 构建隔离的子上下文，不与父级共享状态
+            AgentContext parentContext = SessionContextHolder.getAgentContext();
+
+            // 构建隔离的子上下文；附件元数据会复制给子 Agent，便于共享沙箱文件。
             AgentContext subContext = AgentContext.builder()
                     .sessionId(childSessionId)
                     .query(taskInput)
+                    .attachments(copyAttachments(parentContext))
+                    .attributes(copyAttributes(parentContext))
                     .build();
 
             // 记录父级追踪信息（便于日志分析和问题定位）
@@ -154,8 +161,14 @@ public class AgentTool implements ToolCallback {
             subContext.setAttribute("parent.callType", "AgentTool");
             subContext.setAttribute("parent.originalInput", truncate(toolInput, 200));
 
-            // 调用子智能体执行
-            String result = agent.execute(subContext);
+            // 调用期间切换线程上下文，保证子 Agent 再次调度时继续继承附件元数据。
+            SessionContextHolder.setAgentContext(subContext);
+            String result;
+            try {
+                result = agent.execute(subContext);
+            } finally {
+                SessionContextHolder.setAgentContext(parentContext);
+            }
 
             log.info("AgentTool 子智能体执行完成: agent={}, resultLength={}",
                     agent.getName(), result != null ? result.length() : 0);
@@ -243,6 +256,20 @@ public class AgentTool implements ToolCallback {
             log.warn("AgentTool 输入不是合法 JSON，回退到原始输入: error={}", e.getMessage());
             return toolInput;
         }
+    }
+
+    private java.util.List<AgentAttachment> copyAttachments(AgentContext parentContext) {
+        if (parentContext == null || parentContext.getAttachments() == null) {
+            return new ArrayList<>();
+        }
+        return new ArrayList<>(parentContext.getAttachments());
+    }
+
+    private java.util.Map<String, Object> copyAttributes(AgentContext parentContext) {
+        if (parentContext == null || parentContext.getAttributes() == null) {
+            return new HashMap<>();
+        }
+        return new HashMap<>(parentContext.getAttributes());
     }
 
     /**

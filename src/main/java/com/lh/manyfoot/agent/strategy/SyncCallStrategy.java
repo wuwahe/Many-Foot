@@ -4,8 +4,10 @@ import com.alibaba.cloud.ai.graph.agent.ReactAgent;
 import com.alibaba.cloud.ai.graph.exception.GraphRunnerException;
 import com.lh.manyfoot.agent.context.AgentContext;
 import com.lh.manyfoot.agent.exception.AgentExecutionException;
+import com.lh.manyfoot.agent.support.AgentMessageFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.messages.AssistantMessage;
+import org.springframework.ai.chat.messages.UserMessage;
 
 /**
  * 同步调用策略
@@ -20,7 +22,8 @@ public class SyncCallStrategy implements ExecutionStrategy<String> {
     public String execute(ReactAgent agent, String input, AgentContext context) {
         try {
             log.debug("同步执行智能体: sessionId={}", context.getSessionId());
-            AssistantMessage response = agent.call(input);
+            UserMessage userMessage = AgentMessageFactory.buildUserMessage(input, context);
+            AssistantMessage response = agent.call(userMessage);
 
             String text = response.getText();
             if (text == null || text.isBlank()) {

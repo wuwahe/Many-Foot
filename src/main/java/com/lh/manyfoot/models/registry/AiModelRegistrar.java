@@ -69,7 +69,7 @@ public class AiModelRegistrar {
             if (chat == null) {
                 throw new IllegalStateException("厂商 [" + vendor + "] 的工厂未返回 ChatModel，provider id=" + id);
             }
-            modelResolver.registerChatModel(id, chat);
+            modelResolver.registerChatModel(id, chat, def.isMultimodal());
             chatCount++;
 
             EmbeddingModel embedding = safe(() -> factory.createEmbeddingModel(cfg), "embedding", id);
@@ -83,10 +83,11 @@ public class AiModelRegistrar {
                 imageCount++;
             }
 
-            summary.add(String.format("  - id=%s, vendor=%s, model=%s, chat=yes, embedding=%s, image=%s",
+            summary.add(String.format("  - id=%s, vendor=%s, model=%s, chat=yes, embedding=%s, image=%s, multimodal=%s",
                 id, vendor.getVendor(), def.getModel(),
                 embedding != null ? "yes" : "no",
-                image != null ? "yes" : "no"));
+                image != null ? "yes" : "no",
+                def.isMultimodal() ? "yes" : "no"));
         }
 
         modelResolver.bindRoles(properties.getRoles());

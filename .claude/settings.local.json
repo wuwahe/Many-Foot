@@ -10,7 +10,8 @@
       "Bash(ssh:*)",
       "Bash(dir %USERPROFILE%.ssh*.pub)",
       "WebFetch(domain:github.com)",
-      "Bash(mvn clean compile:*)"
+      "Bash(mvn clean compile:*)",
+      "Bash(mvn dependency:tree -q)"
     ]
   }
 }

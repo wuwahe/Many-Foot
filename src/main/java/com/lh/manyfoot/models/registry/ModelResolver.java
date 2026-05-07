@@ -41,6 +41,9 @@ public class ModelResolver {
     /** 按 provider id 存放的 ImageModel 实例（可选）。 */
     private final Map<String, ImageModel> imageById = new ConcurrentHashMap<>();
 
+    /** 按 provider id 存放 ChatModel 是否支持多模态输入。 */
+    private final Map<String, Boolean> multimodalById = new ConcurrentHashMap<>();
+
     /** 角色 -> 绑定。 */
     private final Map<ModelRole, AiProvidersProperties.Binding> roleBindings =
         new EnumMap<>(ModelRole.class);
@@ -56,6 +59,11 @@ public class ModelResolver {
     public void registerChatModel(String id, ChatModel model) {
         require(id, "provider id");
         chatById.put(id, model);
+    }
+
+    public void registerChatModel(String id, ChatModel model, boolean multimodal) {
+        registerChatModel(id, model);
+        multimodalById.put(id, multimodal);
     }
 
     public void registerEmbeddingModel(String id, EmbeddingModel model) {
@@ -94,6 +102,7 @@ public class ModelResolver {
         chatById.clear();
         embeddingById.clear();
         imageById.clear();
+        multimodalById.clear();
         roleBindings.clear();
         agentBindings.clear();
         defaultProviderId = null;
@@ -114,6 +123,33 @@ public class ModelResolver {
 
     public Optional<ChatModel> findById(String id) {
         return Optional.ofNullable(chatById.get(id));
+    }
+
+    /**
+     * 判断指定 provider 的 ChatModel 是否声明支持多模态输入。
+     */
+    public boolean supportsMultimodal(String id) {
+        return Boolean.TRUE.equals(multimodalById.get(id));
+    }
+
+    /**
+     * 判断角色绑定的主 ChatModel 是否声明支持多模态输入。
+     */
+    public boolean supportsMultimodalForRole(ModelRole role) {
+        String providerId = resolvePrimaryForRole(role);
+        return providerId != null && supportsMultimodal(providerId);
+    }
+
+    /**
+     * 判断 Agent 实际命中的主 ChatModel 是否声明支持多模态输入。
+     */
+    public boolean supportsMultimodalForAgent(String agentName, ModelRole fallbackRole) {
+        AiProvidersProperties.AgentBinding ab = agentBindings.get(agentName);
+        if (ab != null && ab.getPrimary() != null) {
+            return supportsMultimodal(ab.getPrimary());
+        }
+        ModelRole role = (ab != null && ab.getRole() != null) ? ab.getRole() : fallbackRole;
+        return supportsMultimodalForRole(role);
     }
 
     /**
@@ -212,6 +248,14 @@ public class ModelResolver {
             }
         }
         return FailoverChatModel.of(new Named(primaryId, primary), fallbacks);
+    }
+
+    private String resolvePrimaryForRole(ModelRole role) {
+        AiProvidersProperties.Binding binding = roleBindings.get(role);
+        if (binding != null && binding.getPrimary() != null) {
+            return binding.getPrimary();
+        }
+        return defaultProviderId;
     }
 
     private static void require(String v, String label) {

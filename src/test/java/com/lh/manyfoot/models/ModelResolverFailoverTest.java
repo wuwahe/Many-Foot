@@ -21,8 +21,10 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * 纯 JUnit 单测：不起 Spring 上下文，专门验证 {@link ModelResolver} + {@link FailoverChatModel}
@@ -136,6 +138,23 @@ class ModelResolverFailoverTest {
         assertNotNull(m);
         // 默认 qwen-max
         assertEquals("qwen-max", textOf(m));
+    }
+
+    @Test
+    void supportsMultimodalForAgent_shouldUseResolvedPrimaryProvider() {
+        resolver.registerChatModel("vision", new FakeChatModel("vision"), true);
+        resolver.registerChatModel("text", new FakeChatModel("text"), false);
+
+        Binding roleBinding = binding("text", List.of("vision"));
+        resolver.bindRoles(Map.of(ModelRole.CHAT, roleBinding));
+
+        assertFalse(resolver.supportsMultimodalForAgent("Chat_agent", ModelRole.CHAT));
+
+        AiProvidersProperties.AgentBinding agentBinding = new AiProvidersProperties.AgentBinding();
+        agentBinding.setPrimary("vision");
+        resolver.bindAgents(Map.of("Chat_agent", agentBinding));
+
+        assertTrue(resolver.supportsMultimodalForAgent("Chat_agent", ModelRole.CHAT));
     }
 
     // ---------- 工具方法 ----------

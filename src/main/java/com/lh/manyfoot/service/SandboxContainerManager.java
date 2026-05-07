@@ -19,12 +19,14 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.InvalidPathException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -32,6 +34,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 
 /**
  * 沙箱容器管理服务
@@ -574,5 +578,96 @@ public class SandboxContainerManager {
             return getContainer(containerId);
         }
         return null;
+    }
+
+    /**
+     * 上传文件到容器的 /workspace/data 目录，同时在应用本机保存一份副本。
+     * <p>
+     * 容器可能运行在远程 Docker 宿主机上，应用进程无法直接读取容器内文件。
+     * 因此上传时会在 {@code localAttachmentPath}/{sessionId}/data/ 下保存一份副本，
+     * 供多模态模型读取图片时使用。
+     *
+     * @param sessionId 会话ID，用于定位容器和本地存储目录
+     * @param filename  文件名
+     * @param content   文件内容字节数组
+     * @return 容器内文件路径，格式 /workspace/data/{filename}
+     */
+    public String uploadFile(String sessionId, String filename, byte[] content) {
+        SandboxContainer container = getOrCreateContainer(sessionId, null, null);
+        String targetDir = sandboxConfig.getWorkspaceMount() + "/data";
+        executeInContainer(container.getContainerId(), new String[]{"mkdir", "-p", targetDir});
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             TarArchiveOutputStream tar = new TarArchiveOutputStream(baos)) {
+            TarArchiveEntry entry = new TarArchiveEntry(filename);
+            entry.setSize(content.length);
+            tar.putArchiveEntry(entry);
+            tar.write(content);
+            tar.closeArchiveEntry();
+            tar.finish();
+            dockerClient.copyArchiveToContainerCmd(container.getContainerId())
+                    .withRemotePath(targetDir)
+                    .withTarInputStream(new ByteArrayInputStream(baos.toByteArray()))
+                    .exec();
+        } catch (IOException e) {
+            throw new RuntimeException("上传文件失败: " + e.getMessage(), e);
+        }
+        saveLocalCopy(sessionId, filename, content);
+        return targetDir + "/" + filename;
+    }
+
+    /**
+     * 将容器内路径转换为应用本机的附件副本路径。
+     * <p>
+     * 容器可能运行在远程 Docker 宿主机上，应用进程无法直接访问容器宿主机文件系统。
+     * 上传文件时会同时在本机保存副本，此方法用于将容器路径映射到本机副本路径，
+     * 供 {@code AgentMessageFactory} 构建多模态 {@code Media} 时读取图片。
+     *
+     * @param sessionId    会话ID
+     * @param containerPath 容器内路径，必须位于 {@code workspaceMount} 下
+     * @return 本机附件副本路径
+     * @throws IllegalArgumentException 路径为空、不在工作目录内或包含路径遍历
+     */
+    public String toLocalAttachmentPath(String sessionId, String containerPath) {
+        if (sessionId == null || sessionId.isBlank()) {
+            throw new IllegalArgumentException("sessionId 不能为空");
+        }
+        if (containerPath == null || containerPath.isBlank()) {
+            throw new IllegalArgumentException("附件路径不能为空");
+        }
+        String workspaceMount = sandboxConfig.getWorkspaceMount();
+        if (!containerPath.equals(workspaceMount) && !containerPath.startsWith(workspaceMount + "/")) {
+            throw new IllegalArgumentException("附件路径必须位于沙箱工作目录内: " + workspaceMount);
+        }
+        try {
+            Path relativePath = Path.of(workspaceMount).relativize(Path.of(containerPath)).normalize();
+            if (relativePath.isAbsolute() || relativePath.startsWith("..")) {
+                throw new IllegalArgumentException("附件路径不能越过会话工作目录");
+            }
+            Path localBase = Path.of(sandboxConfig.getLocalAttachmentPath(), sessionId).normalize();
+            Path localPath = localBase.resolve(relativePath).normalize();
+            if (!localPath.startsWith(localBase)) {
+                throw new IllegalArgumentException("附件本地路径不能越过会话工作目录");
+            }
+            return localPath.toString();
+        } catch (InvalidPathException e) {
+            throw new IllegalArgumentException("附件路径格式非法", e);
+        }
+    }
+
+    /**
+     * 在应用本机保存文件副本。
+     * <p>
+     * 容器与应用分离部署时，多模态模型需要从本地读取图片文件。
+     * 此方法将上传的文件保存到 {@code localAttachmentPath}/{sessionId}/data/ 目录下，
+     * 路径与容器内结构保持一致，便于 {@link #toLocalAttachmentPath} 进行路径映射。
+     */
+    private void saveLocalCopy(String sessionId, String filename, byte[] content) {
+        Path localDir = Path.of(sandboxConfig.getLocalAttachmentPath(), sessionId, "data");
+        try {
+            Files.createDirectories(localDir);
+            Files.write(localDir.resolve(filename), content);
+        } catch (IOException e) {
+            log.warn("保存附件本地副本失败: sessionId={}, filename={}", sessionId, filename, e);
+        }
     }
 }
