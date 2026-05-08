@@ -1,4 +1,4 @@
-package com.lh.manyfoot.codeact.domain;
+package com.lh.manyfoot.agent.tool.sandbox.domain;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -12,49 +12,53 @@ import java.io.Serializable;
 import java.util.Map;
 
 /**
- * 代码执行请求
+ * 沙箱代码执行请求
+ * <p>
+ * 封装一次代码执行所需的完整上下文，包括会话隔离、代码类型、租户/用户维度等。
+ * 采用 Builder 模式，便于在调用点以声明式方式组装请求。
  *
  * @author airx
+ * @see com.lh.manyfoot.agent.tool.sandbox.engine.SandboxEngine
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CodeExecutionRequest implements Serializable {
+public class SandboxExecutionRequest implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
 
     /**
-     * 会话ID
+     * 会话ID，用于隔离沙箱容器
      */
     @NotBlank(message = "会话ID不能为空")
     private String sessionId;
 
     /**
-     * 执行类型
+     * 执行类型（Python / Shell / Bash）
      */
     @NotNull(message = "代码类型不能为空")
-    private CodeType codeType;
+    private SandboxCodeType codeType;
 
     /**
-     * 代码内容
+     * 代码内容或命令文本
      */
     @NotBlank(message = "代码内容不能为空")
     private String code;
 
     /**
-     * 工作目录 (容器内相对路径)
+     * 容器内相对工作目录
      */
     private String workingDirectory;
 
     /**
-     * 环境变量
+     * 环境变量（键值对）
      */
     private Map<String, String> environment;
 
     /**
-     * 超时时间(秒)
+     * 超时时间（秒），默认 60s
      */
     @Builder.Default
     private Integer timeout = 60;
@@ -76,7 +80,7 @@ public class CodeExecutionRequest implements Serializable {
     private Long userId;
 
     /**
-     * 文件名 (可选，用于保存代码文件)
+     * 文件名（可选，用于保存代码到文件后执行）
      */
     private String fileName;
 }

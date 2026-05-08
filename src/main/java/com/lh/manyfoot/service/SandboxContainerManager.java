@@ -30,6 +30,7 @@ import java.nio.file.InvalidPathException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -376,6 +377,87 @@ public class SandboxContainerManager {
         } catch (Exception e) {
             throw new RuntimeException("读取文件失败: " + e.getMessage(), e);
         }
+    }
+
+    /**
+     * 从容器读取二进制文件。
+     * 使用 base64 作为传输格式，避免 PDF、Office 等二进制内容在 Docker 输出流中被 UTF-8 解码破坏。
+     */
+    public byte[] readFileBytes(String containerId, String path) {
+        return readFileBytes(containerId, path, 0);
+    }
+
+    /**
+     * 从容器读取二进制文件，并限制最大读取字节数。
+     */
+    public byte[] readFileBytes(String containerId, String path, long maxBytes) {
+        SandboxContainer container = getContainer(containerId);
+        if (container == null) {
+            throw new RuntimeException("容器不存在: " + containerId);
+        }
+
+        try {
+            String containerPath = resolveWorkspacePath(path);
+            assertReadableFileSize(containerId, containerPath, maxBytes);
+
+            String command = "base64 " + shellQuote(containerPath) + " | tr -d '\\n'";
+            ExecutionResult result = executeInContainer(containerId, new String[]{"/bin/bash", "-c", command});
+            if (!result.isSuccess()) {
+                throw new RuntimeException("文件不存在或无法读取: " + path);
+            }
+
+            updateLastActiveTime(containerId);
+            return Base64.getDecoder().decode(result.getStdout());
+        } catch (Exception e) {
+            throw new RuntimeException("读取二进制文件失败: " + e.getMessage(), e);
+        }
+    }
+
+    private void assertReadableFileSize(String containerId, String containerPath, long maxBytes) {
+        if (maxBytes <= 0) {
+            return;
+        }
+        String command = "stat -c %s -- " + shellQuote(containerPath);
+        ExecutionResult result = executeInContainer(containerId, new String[]{"/bin/bash", "-c", command});
+        if (!result.isSuccess()) {
+            throw new RuntimeException("文件不存在或无法读取: " + containerPath);
+        }
+        try {
+            long fileSize = Long.parseLong(result.getStdout().trim());
+            if (fileSize > maxBytes) {
+                throw new RuntimeException("文件过大，最大支持 " + maxBytes + " bytes，当前文件 " + fileSize + " bytes");
+            }
+        } catch (NumberFormatException e) {
+            throw new RuntimeException("无法读取文件大小: " + containerPath, e);
+        }
+    }
+
+    private String resolveWorkspacePath(String path) {
+        if (StrUtil.isBlank(path)) {
+            throw new IllegalArgumentException("文件路径不能为空");
+        }
+        try {
+            Path workspacePath = Path.of(sandboxConfig.getWorkspaceMount()).normalize();
+            String requestedPath = path.startsWith("/") ? path : "/" + path;
+            Path containerPath;
+            if (requestedPath.equals(sandboxConfig.getWorkspaceMount())
+                || requestedPath.startsWith(sandboxConfig.getWorkspaceMount() + "/")) {
+                containerPath = Path.of(requestedPath).normalize();
+            } else {
+                containerPath = workspacePath.resolve(requestedPath.substring(1)).normalize();
+            }
+
+            if (!containerPath.equals(workspacePath) && !containerPath.startsWith(workspacePath)) {
+                throw new IllegalArgumentException("文件路径不能越过沙箱工作目录: " + sandboxConfig.getWorkspaceMount());
+            }
+            return containerPath.toString();
+        } catch (InvalidPathException e) {
+            throw new IllegalArgumentException("文件路径格式非法", e);
+        }
+    }
+
+    private String shellQuote(String value) {
+        return "'" + value.replace("'", "'\"'\"'") + "'";
     }
 
     /**

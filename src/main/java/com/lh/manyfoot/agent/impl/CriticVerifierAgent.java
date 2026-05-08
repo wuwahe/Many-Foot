@@ -7,7 +7,7 @@ import com.lh.manyfoot.agent.domain.ReviewReport;
 import com.lh.manyfoot.agent.prompt.CriticVerifierPromptProvider;
 import com.lh.manyfoot.agent.strategy.SyncCallStrategy;
 import com.lh.manyfoot.agent.support.SpecialistJsonUtils;
-import com.lh.manyfoot.agent.tool.ReadOnlyToolProvider;
+import com.lh.manyfoot.agent.tool.FullToolProvider;
 import com.lh.manyfoot.models.registry.ModelResolver;
 import com.lh.manyfoot.models.registry.ModelRole;
 import org.springframework.stereotype.Component;
@@ -23,7 +23,7 @@ public class CriticVerifierAgent extends AbstractToolAgent<String> {
 
     public CriticVerifierAgent(ModelResolver modelResolver,
                                CriticVerifierPromptProvider promptProvider,
-                               ReadOnlyToolProvider toolProvider) {
+                               FullToolProvider toolProvider) {
         super(modelResolver, promptProvider, new SyncCallStrategy(), toolProvider);
     }
 
