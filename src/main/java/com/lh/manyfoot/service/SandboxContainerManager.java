@@ -16,6 +16,9 @@ import com.lh.manyfoot.domain.SandboxContainer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -23,10 +26,11 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -51,10 +55,12 @@ public class SandboxContainerManager {
 
     private final DockerClient dockerClient;
     private final SandboxConfig sandboxConfig;
+    private final ResourceLoader resourceLoader;
 
-    public SandboxContainerManager(@Lazy DockerClient dockerClient, SandboxConfig sandboxConfig) {
+    public SandboxContainerManager(@Lazy DockerClient dockerClient, SandboxConfig sandboxConfig, ResourceLoader resourceLoader) {
         this.dockerClient = dockerClient;
         this.sandboxConfig = sandboxConfig;
+        this.resourceLoader = resourceLoader;
     }
 
     // Redis 键前缀
@@ -137,6 +143,7 @@ public class SandboxContainerManager {
 
             // 启动容器
             dockerClient.startContainerCmd(containerId).exec();
+            syncSkillsToContainer(containerId);
 
             // 获取容器信息
             InspectContainerResponse inspect = dockerClient.inspectContainerCmd(containerId).exec();
@@ -499,6 +506,79 @@ public class SandboxContainerManager {
         } catch (Exception e) {
             throw new RuntimeException("列出目录失败: " + e.getMessage(), e);
         }
+    }
+
+    private void syncSkillsToContainer(String containerId) {
+        try {
+            PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(resourceLoader);
+            Resource[] resources = resolver.getResources("classpath*:skills/**");
+
+            ExecutionResult mkdirResult = executeInContainer(containerId,
+                new String[]{"mkdir", "-p", sandboxConfig.getWorkspaceMount() + "/skills"});
+            if (!mkdirResult.isSuccess()) {
+                throw new IOException("创建容器 skills 目录失败: " + mkdirResult.getStderr());
+            }
+            int copiedCount = copySkillsArchiveToContainer(containerId, resources);
+            if (copiedCount == 0) {
+                throw new IOException("classpath 下未找到可同步的 skills 文件");
+            }
+            log.info("skills 同步完成: containerId={}, target={}, copiedFiles={}",
+                containerId, sandboxConfig.getWorkspaceMount() + "/skills", copiedCount);
+        } catch (Exception e) {
+            throw new RuntimeException("同步 skills 到容器失败: " + e.getMessage(), e);
+        }
+    }
+
+    private int copySkillsArchiveToContainer(String containerId, Resource[] resources) throws IOException {
+        int copiedCount = 0;
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             TarArchiveOutputStream tar = new TarArchiveOutputStream(baos)) {
+            for (Resource resource : resources) {
+                if (!resource.exists() || !resource.isReadable()) {
+                    continue;
+                }
+                String relativePath = resolveSkillResourceRelativePath(resource);
+                if (StrUtil.isBlank(relativePath) || relativePath.endsWith("/")) {
+                    continue;
+                }
+
+                String archivePath = resolveSkillArchivePath(relativePath);
+                byte[] content;
+                try (var inputStream = resource.getInputStream()) {
+                    content = inputStream.readAllBytes();
+                }
+                TarArchiveEntry entry = new TarArchiveEntry(archivePath);
+                entry.setSize(content.length);
+                tar.putArchiveEntry(entry);
+                tar.write(content);
+                tar.closeArchiveEntry();
+                copiedCount++;
+            }
+            tar.finish();
+            dockerClient.copyArchiveToContainerCmd(containerId)
+                .withRemotePath(sandboxConfig.getWorkspaceMount())
+                .withTarInputStream(new ByteArrayInputStream(baos.toByteArray()))
+                .exec();
+        }
+        return copiedCount;
+    }
+
+    private String resolveSkillArchivePath(String relativePath) throws IOException {
+        Path normalizedPath = Path.of(relativePath).normalize();
+        if (normalizedPath.isAbsolute() || normalizedPath.startsWith("..")) {
+            throw new IOException("非法 skills 资源路径: " + relativePath);
+        }
+        return "skills/" + normalizedPath.toString().replace(File.separatorChar, '/');
+    }
+
+    private String resolveSkillResourceRelativePath(Resource resource) throws IOException {
+        String resourcePath = resource.getURL().toString();
+        int skillsIndex = resourcePath.indexOf("/skills/");
+        if (skillsIndex < 0) {
+            return null;
+        }
+        String relativePath = resourcePath.substring(skillsIndex + "/skills/".length());
+        return URLDecoder.decode(relativePath, StandardCharsets.UTF_8);
     }
 
     /**

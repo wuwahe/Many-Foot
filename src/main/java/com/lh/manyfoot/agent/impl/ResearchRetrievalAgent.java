@@ -68,4 +68,9 @@ public class ResearchRetrievalAgent extends AbstractToolAgent<String> {
                 "bailian_web_search"
         );
     }
+
+    @Override
+    protected Set<String> getAvailableSkills() {
+        return Set.of("");
+    }
 }

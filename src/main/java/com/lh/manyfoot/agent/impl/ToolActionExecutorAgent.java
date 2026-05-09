@@ -72,4 +72,8 @@ public class ToolActionExecutorAgent extends AbstractToolAgent<String> {
         );
     }
 
+    @Override
+    protected Set<String> getAvailableSkills() {
+        return Set.of("create-pptx");
+    }
 }

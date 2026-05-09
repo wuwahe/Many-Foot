@@ -4,7 +4,7 @@
 
 ## 项目概述
 
-ManyFoot 是一个基于 Spring Boot 3.4.4 构建的多厂商 AI 智能体编排框架，实现了 Manus 风格的智能体循环，支持在 Docker 沙箱中自主执行任务。使用 Java 17 和 Maven。
+ManyFoot 是一个基于 Spring Boot 3.4.4 构建的多厂商 AI 智能体编排框架，实现了 ManyFoot 风格的智能体循环，支持在 Docker 沙箱中自主执行任务。使用 Java 17 和 Maven。
 
 ## 构建和运行命令
 
@@ -26,7 +26,7 @@ mvn test
 
 ### 智能体循环模式
 
-`ManusOrchestrator` 实现了 ReAct 风格的自主执行循环：
+`ManyFootOrchestrator` 实现了 ReAct 风格的自主执行循环：
 
 ```
 分析(ANALYZE) → 规划(PLAN) → 执行(EXECUTE) → 观察(OBSERVE) → [循环或完成]
@@ -95,8 +95,8 @@ mvn test
 ## 关键模块依赖
 
 ```
-ManusController
-    → ManusOrchestrator
+ManyFootController
+    → ManyFootOrchestrator
         → AgentFactory（提供所有智能体）
             → AnalyzerAgent、ExecutorAgent、SubtaskExecutorAgent、ObserverAgent
         → CodeActEngine（代码执行）
@@ -105,7 +105,7 @@ ManusController
         → AiModelStorage（模型获取）
 
 AsyncTaskManager
-    → ManusOrchestrator
+    → ManyFootOrchestrator
     → EventStreamService
     → Redis（通过 RedisUtils）
 ```
@@ -115,17 +115,17 @@ AsyncTaskManager
 配置在 `application.yaml` 中。关键部分：
 - `many-foot.model.*`：默认 AI 厂商和凭证
 - `spring.ai.*`：厂商特定 API 密钥（dashscope、google.genai）
-- `manus.sandbox.*`：Docker 沙箱设置（镜像、资源限制、超时）
+- `many-foot.sandbox.*`：Docker 沙箱设置（镜像、资源限制、超时）
 - `spring.data.redis.*`：用于事件和会话状态的 Redis 连接
 
 ## REST API 接口
 
-- `POST /manus/execute/stream` - SSE 流式执行
-- `POST /manus/task/submit` - 异步任务提交
-- `GET /manus/task/{taskId}/status` - 任务状态轮询
-- `POST /manus/task/{taskId}/cancel` - 任务取消
-- `GET /manus/events/{sessionId}` - 事件历史
-- `GET /manus/session/{sessionId}/exists` - 会话存在检查
+- `POST /many-foot/execute/stream` - SSE 流式执行
+- `POST /many-foot/task/submit` - 异步任务提交
+- `GET /many-foot/task/{taskId}/status` - 任务状态轮询
+- `POST /many-foot/task/{taskId}/cancel` - 任务取消
+- `GET /many-foot/events/{sessionId}` - 事件历史
+- `GET /many-foot/session/{sessionId}/exists` - 会话存在检查
 
 ## 基础设施要求
 

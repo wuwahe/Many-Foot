@@ -82,6 +82,10 @@ public abstract class AbstractAgent<R> implements Agent<R> {
             builder.tools(tools.toArray(new ToolCallback[0]));
         }
 
+        if (this instanceof AbstractToolAgent<?> toolAgent && toolAgent.getSkillsAgentHook() != null) {
+            builder.hooks(List.of(toolAgent.getSkillsAgentHook()));
+        }
+
         return builder.build();
     }
 
