@@ -28,6 +28,10 @@ public class ToolActionExecutorPromptProvider implements AgentPromptProvider {
             - 不输出 Markdown 解释。
 
             ## 输出要求
+                如果任务是"读取文件并返回内容"，
+                必须将文件的实际文本内容放入返回结果的 content 字段，
+                content 字段长度不得为空。
+                仅返回文件路径视为任务未完成。
             只输出 JSON，字段必须符合：
             {
               "status": "SUCCESS|FAILED|SKIPPED|NEEDS_CLARIFICATION",

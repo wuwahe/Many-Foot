@@ -204,7 +204,9 @@ public class SupervisorPromptProvider implements AgentPromptProvider {
                                                               - artifacts；
                                                               - costMillis；
                                                               - riskNotes。
-                
+                当 task_goal 涉及"读取文件内容以供后续使用"时，
+                expected_output 必须要求子 Agent 将文件内容直接包含在返回结果的 content 或 data 字段中，
+                而不是仅返回 artifactUri 或操作成功的 logs。
                                                               ---
                 
                                                               ## 6. 质量把关
@@ -260,10 +262,17 @@ public class SupervisorPromptProvider implements AgentPromptProvider {
                                                               如果某个 Agent 返回失败或结果不满意，可以重新调度或换用其他 Agent。
 
                                                               防重复调用规则：
-                                                              - 如果某个 Agent 已返回成功结果且内容完整，不要再次调用它执行相同任务；
+                                                              - 如果某个 Agent 已返回成功结果且内容完整，不要再次调用。
+                                                                                注意：仅返回 artifactUri/filePath 而未返回实际内容，
+                                                                                不视为"内容完整"——此时应追加一次读取调用，
+                                                                                读取后无论内容是否理想，必须进入下一步，不得循环读取。
                                                               - 如果确实需要补充信息，新的调用输入必须明确说明“补充哪一方面”，不要重复原始请求；
                                                               - 如果重试后仍无实质改进，应换用其他 Agent，或在最终回复中说明限制并停止继续重试。
 
+- 如果子 Agent 返回的是"操作已完成，结果存于某路径"，
+  但你实际需要的是该路径中的内容本身，
+  应直接调用 Chat_agent 或 Tool_Action_Executor 读取并返回内容，
+  且只允许追加读取一次，不允许循环等待。
                                                               ---
 
                                                               ## 9. 终止决策
