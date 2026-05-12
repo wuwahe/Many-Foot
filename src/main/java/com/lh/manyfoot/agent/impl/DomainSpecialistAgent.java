@@ -108,7 +108,7 @@ public abstract class DomainSpecialistAgent extends AbstractAgent<String> {
         return DomainDraft.builder()
             .analysisMd(response)
             .risks(List.of("模型响应未能解析为 DomainDraft JSON"))
-            .nextActions(List.of("交由 Critic_Verifier_agent 复核后决定是否返工"))
+            .nextActions(List.of("必要时交由 Code_agent 通过代码执行、数据分析或脚本验证补充结果"))
             .build();
     }
 

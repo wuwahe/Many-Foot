@@ -22,6 +22,9 @@ public class AgentContext {
     /** 当前智能体所使用的 ChatModel 是否允许接收多模态 Media 输入。 */
     public static final String MULTIMODAL_INPUT_ENABLED_ATTRIBUTE = "multimodalInputEnabled";
 
+    /** Spring AI ToolContext 中用于传递当前沙箱会话 ID 的键。 */
+    public static final String TOOL_CONTEXT_SESSION_ID = "sessionId";
+
     /**
      * 会话ID
      */

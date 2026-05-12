@@ -2,7 +2,7 @@ package com.lh.manyfoot.agent.factory;
 
 import com.lh.manyfoot.agent.core.Agent;
 import com.lh.manyfoot.agent.impl.ChatAgent;
-import com.lh.manyfoot.agent.impl.CriticVerifierAgent;
+import com.lh.manyfoot.agent.impl.CodeAgent;
 import com.lh.manyfoot.agent.impl.DocumentSpecialistAgent;
 import com.lh.manyfoot.agent.impl.PlannerRouterAgent;
 import com.lh.manyfoot.agent.impl.ResearchRetrievalAgent;
@@ -25,7 +25,7 @@ public class AgentFactory {
     private final ResearchRetrievalAgent researchRetrievalAgent;
     private final DocumentSpecialistAgent documentSpecialistAgent;
     private final ToolActionExecutorAgent toolActionExecutorAgent;
-    private final CriticVerifierAgent criticVerifierAgent;
+    private final CodeAgent codeAgent;
     private final ChatAgent chatAgent;
     // Supervisor 编排智能体 —— AgentFactory 仅作为兼容入口持有引用，
     // Supervisor 的实际编排逻辑由 SupervisorAgent 自身通过 ReactAgent tool_call 驱动，
@@ -33,17 +33,17 @@ public class AgentFactory {
     private final SupervisorAgent supervisorAgent;
 
     public AgentFactory(PlannerRouterAgent plannerRouterAgent,
-                        ResearchRetrievalAgent researchRetrievalAgent,
-                        DocumentSpecialistAgent documentSpecialistAgent,
-                        ToolActionExecutorAgent toolActionExecutorAgent,
-                        CriticVerifierAgent criticVerifierAgent,
-                        ChatAgent chatAgent,
-                        SupervisorAgent supervisorAgent) {
+                         ResearchRetrievalAgent researchRetrievalAgent,
+                         DocumentSpecialistAgent documentSpecialistAgent,
+                         ToolActionExecutorAgent toolActionExecutorAgent,
+                         CodeAgent codeAgent,
+                         ChatAgent chatAgent,
+                         SupervisorAgent supervisorAgent) {
         this.plannerRouterAgent = plannerRouterAgent;
         this.researchRetrievalAgent = researchRetrievalAgent;
         this.documentSpecialistAgent = documentSpecialistAgent;
         this.toolActionExecutorAgent = toolActionExecutorAgent;
-        this.criticVerifierAgent = criticVerifierAgent;
+        this.codeAgent = codeAgent;
         this.chatAgent = chatAgent;
         this.supervisorAgent = supervisorAgent;
     }
@@ -62,7 +62,7 @@ public class AgentFactory {
             // 按任务内容动态选择具体专家。直接通过工厂获取时返回覆盖面最宽的通用业务专家，避免重新引入第五个"泛领域专家"实例。
             case DOMAIN_SPECIALIST, DOCUMENT_SPECIALIST -> documentSpecialistAgent;
             case TOOL_ACTION_EXECUTOR -> toolActionExecutorAgent;
-            case CRITIC_VERIFIER -> criticVerifierAgent;
+            case CODE -> codeAgent;
             case CHAT -> chatAgent;
             case SUPERVISOR -> supervisorAgent;
         };
@@ -74,7 +74,7 @@ public class AgentFactory {
         DOMAIN_SPECIALIST,
         DOCUMENT_SPECIALIST,
         TOOL_ACTION_EXECUTOR,
-        CRITIC_VERIFIER,
+        CODE,
         CHAT,
         SUPERVISOR
     }

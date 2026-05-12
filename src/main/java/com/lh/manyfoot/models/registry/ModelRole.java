@@ -30,9 +30,9 @@ public enum ModelRole {
     TOOL_ACTION_EXECUTOR("tool-action-executor", "工具与事务执行智能体"),
 
     /**
-     * 评审与验证智能体
+     * 代码执行智能体
      */
-    CRITIC_VERIFIER("critic-verifier", "评审与验证智能体"),
+    CODE("code", "代码执行智能体"),
 
     /**
      * 普通对话智能体

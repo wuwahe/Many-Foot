@@ -83,7 +83,7 @@ class ModelResolverFailoverTest {
         roles.put(ModelRole.RESEARCH_RETRIEVAL, binding("qwen-max", List.of("qwen-plus")));
         roles.put(ModelRole.DOMAIN_SPECIALIST, binding("qwen-max", List.of("qwen-plus")));
         roles.put(ModelRole.TOOL_ACTION_EXECUTOR, binding("qwen3-coder", List.of("qwen-max")));
-        roles.put(ModelRole.CRITIC_VERIFIER, binding("qwen-plus", List.of("qwen-max")));
+        roles.put(ModelRole.CODE, binding("qwen3-coder", List.of("qwen-max")));
         resolver.bindRoles(roles);
 
         resolver.setDefaultProviderId("qwen-max");
@@ -96,7 +96,7 @@ class ModelResolverFailoverTest {
         assertEquals("qwen-max", textOf(resolver.forRole(ModelRole.RESEARCH_RETRIEVAL)));
         assertEquals("qwen-max", textOf(resolver.forRole(ModelRole.DOMAIN_SPECIALIST)));
         assertEquals("qwen3-coder", textOf(resolver.forRole(ModelRole.TOOL_ACTION_EXECUTOR)));
-        assertEquals("qwen-plus", textOf(resolver.forRole(ModelRole.CRITIC_VERIFIER)));
+        assertEquals("qwen3-coder", textOf(resolver.forRole(ModelRole.CODE)));
     }
 
     @Test

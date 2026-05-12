@@ -65,7 +65,7 @@ public class AgentRegistry {
      * 注意：这里使用的是 Spring 的泛型集合注入机制。
      * 抽象类（如 DomainSpecialistAgent）不会被收集，只有具体的 @Component 子类才会。
      * 收集范围包括所有具体的 @Component 子类（如 PlannerRouter、ResearchRetrieval、
-     * 各 DomainSpecialist、ToolActionExecutor、CriticVerifier、Chat、Supervisor 等）。
+     * 各 DomainSpecialist、ToolActionExecutor、Code、Chat、Supervisor 等）。
      * 抽象父类（如 DomainSpecialistAgent）不会被收集。
      * Supervisor 自身也会被收集；消费方如需排除，应使用
      * {@code getAgentsExcluding("Supervisor_agent")} 或 {@code @Lazy} 注入。

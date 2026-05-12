@@ -37,7 +37,7 @@ many-foot:
       TOOL_ACTION_EXECUTOR:
         primary: test-model
         fallbacks: []
-      CRITIC_VERIFIER:
+      CODE:
         primary: test-model
         fallbacks: []
       CHAT:

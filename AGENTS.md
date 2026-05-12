@@ -75,7 +75,7 @@ com.lh.manyfoot
 | `agent.domain.*` | 智能体领域对象：PlanGraph、TaskSpec、ActionCall、ActionResult、DomainDraft 等 |
 | `agent.exception.*` | 智能体异常：AgentExecutionException |
 | `agent.factory.*` | 智能体工厂：AgentFactory、AgentType |
-| `agent.impl.*` | 智能体实现：SupervisorAgent、PlannerRouterAgent、ResearchRetrievalAgent、DomainSpecialistAgent、DocumentSpecialistAgent、ToolActionExecutorAgent、CriticVerifierAgent、ChatAgent |
+| `agent.impl.*` | 智能体实现：SupervisorAgent、PlannerRouterAgent、ResearchRetrievalAgent、DomainSpecialistAgent、DocumentSpecialistAgent、ToolActionExecutorAgent、CodeAgent、ChatAgent |
 | `agent.prompt.*` | 提示词提供者：AgentPromptProvider 及各智能体专属 PromptProvider |
 | `agent.registry.*` | 智能体注册表：AgentRegistry（动态发现所有 Agent Bean） |
 | `agent.strategy.*` | 执行策略：ExecutionStrategy、SyncCallStrategy、StreamingStrategy |
@@ -146,8 +146,8 @@ com.lh.manyfoot.agent.factory.AgentFactory
 │         │                   ▲                   │           │
 │         │                   │                   ▼           │
 │         ▼                   │            ┌──────────────┐  │
-│  ┌──────────────┐           │            │ CriticVerif  │  │
-│  │ ResearchRetr │───────────┘            │   评审验证    │  │
+│  ┌──────────────┐           │            │   CodeAgent  │  │
+│  │ ResearchRetr │───────────┘            │   代码执行    │  │
 │  │   检索证据    │◀───────────────────────│              │  │
 │  └──────────────┘                        └──────────────┘  │
 │                                                             │
@@ -173,7 +173,7 @@ com.lh.manyfoot.agent.factory.AgentFactory
 | DomainSpecialistAgent | `DOMAIN_SPECIALIST` | `DOMAIN_SPECIALIST` | 领域专业知识处理（抽象基类） |
 | DocumentSpecialistAgent | `DOCUMENT_SPECIALIST` | `DOMAIN_SPECIALIST` | 文档/需求专家：需求分析、文档草拟、验收标准 |
 | ToolActionExecutorAgent | `TOOL_ACTION_EXECUTOR` | `TOOL_ACTION_EXECUTOR` | 工具调用、动作执行 |
-| CriticVerifierAgent | `CRITIC_VERIFIER` | `CRITIC_VERIFIER` | 评审验证、质量把关 |
+| CodeAgent | `CODE` | `CODE` | 编写、调试、运行代码，适用于数据分析、自动化脚本和复杂问题验证 |
 | ChatAgent | `CHAT` | `CHAT` | 多模态文档分析助手：图片理解、文档提取、图表分析 |
 
 ### 2. 智能体体系
@@ -441,7 +441,7 @@ ModelRole.PLANNER_ROUTER       # 规划与路由
 ModelRole.RESEARCH_RETRIEVAL   # 检索与证据
 ModelRole.DOMAIN_SPECIALIST    # 领域专家
 ModelRole.TOOL_ACTION_EXECUTOR # 工具执行
-ModelRole.CRITIC_VERIFIER      # 评审验证
+ModelRole.CODE                 # 代码执行
 ModelRole.CHAT                 # 多模态对话
 ```
 
@@ -545,8 +545,8 @@ many-foot:
       TOOL_ACTION_EXECUTOR:
         primary: qwen3-coder
         fallbacks: [qwen-max]
-      CRITIC_VERIFIER:
-        primary: qwen-turbo
+      CODE:
+        primary: qwen3-coder
         fallbacks: [qwen-max]
       CHAT:
         primary: qwen-vl-max
@@ -757,8 +757,6 @@ ExecutionResultFormatter # 执行结果格式化器
 | `DomainSpecialistInput` | 领域专家输入 |
 | `ResearchBrief` | 研究摘要 |
 | `EvidencePack` | 证据包 |
-| `ReviewReport` | 评审报告 |
-| `ArtifactBundle` | 产出物集合 |
 | `TaskSlice` | 任务切片 |
 
 `agent.context.*` 包含智能体执行上下文：

@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
  *   <li><b>任务分解与规划</b>：将复杂任务拆解为可由子智能体独立完成的子任务</li>
  *   <li><b>智能体调度</b>：通过 ReactAgent 的 tool_call 机制，将子任务委派给合适的专业智能体</li>
  *   <li><b>结果综合</b>：收集各子智能体的执行结果，综合整理后输出最终答案</li>
- *   <li><b>质量把控</b>：在必要时调度 CriticVerifier 对关键产出进行验证</li>
+ *   <li><b>代码执行</b>：在必要时调度 CodeAgent 编写、调试和运行代码</li>
  * </ul>
  *
  * <h2>非职责（Supervisor 不做什么）</h2>

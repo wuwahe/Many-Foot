@@ -12,6 +12,7 @@ import org.springframework.ai.tool.ToolCallback;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 抽象智能体基类
@@ -77,6 +78,10 @@ public abstract class AbstractAgent<R> implements Agent<R> {
             .name(getName())
             .systemPrompt(systemPrompt)
             .model(chatModel);
+
+        if (context.getSessionId() != null && !context.getSessionId().isBlank()) {
+            builder.toolContext(Map.of(AgentContext.TOOL_CONTEXT_SESSION_ID, context.getSessionId()));
+        }
 
         if (tools != null && !tools.isEmpty()) {
             builder.tools(tools.toArray(new ToolCallback[0]));

@@ -27,7 +27,7 @@ public class PlannerRouterPromptProvider implements AgentPromptProvider {
             - DOCUMENT_SPECIALIST_AGENT: 文档/需求专家，负责需求澄清、文档草稿、验收标准和表达一致性
             - DOMAIN_SPECIALIST_AGENT: 兼容入口；仅当无法判断具体专业方向时使用，执行时会自动选择合适专家
             - TOOL_ACTION_EXECUTOR_AGENT: 工具与事务执行
-            - CRITIC_VERIFIER_AGENT: 评审与验证
+            - CODE_AGENT: 代码执行，负责编写、调试、运行代码，适用于数据分析、自动化脚本和复杂问题验证
 
             ## 禁止事项
             - 不直接执行工具或产生副作用。

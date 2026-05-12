@@ -7,12 +7,13 @@ import com.lh.manyfoot.agent.context.AgentContext;
 import com.lh.manyfoot.agent.context.SessionContextHolder;
 import com.lh.manyfoot.agent.core.Agent;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.chat.model.ToolContext;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.definition.ToolDefinition;
 
-import java.util.UUID;
-import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.UUID;
 
 /**
  * 智能体工具适配器
@@ -139,8 +140,13 @@ public class AgentTool implements ToolCallback {
      */
     @Override
     public String call(String toolInput) {
+        return call(toolInput, null);
+    }
+
+    @Override
+    public String call(String toolInput, ToolContext toolContext) {
         String taskInput = extractInput(toolInput);
-        String childSessionId = buildChildSessionId();
+        String childSessionId = buildChildSessionId(toolContext);
 
         log.info("AgentTool 开始调用子智能体: agent={}, childSessionId={}, inputLength={}",
                 agent.getName(), childSessionId, taskInput.length());
@@ -163,12 +169,15 @@ public class AgentTool implements ToolCallback {
 
             log.info("{}子智能体接收的信息：{}", agent.getName(), toolInput);
             // 调用期间切换线程上下文，保证子 Agent 再次调度时继续继承附件元数据。
+            String previousSessionId = SessionContextHolder.getSessionId();
             SessionContextHolder.setAgentContext(subContext);
+            SessionContextHolder.setSessionId(childSessionId);
             String result;
             try {
                 result = agent.execute(subContext);
             } finally {
                 SessionContextHolder.setAgentContext(parentContext);
+                SessionContextHolder.setSessionId(previousSessionId);
             }
 
             log.info("AgentTool 子智能体执行完成: agent={}, resultLength={}",
@@ -289,7 +298,13 @@ public class AgentTool implements ToolCallback {
      *
      * @return 子会话 ID
      */
-    private String buildChildSessionId() {
+    private String buildChildSessionId(ToolContext toolContext) {
+        String toolContextSessionId = resolveSessionId(toolContext);
+        if (toolContextSessionId != null) {
+            log.debug("子代理继承 ToolContext 会话ID: sessionId={}", toolContextSessionId);
+            return toolContextSessionId;
+        }
+
         String parentSessionId = SessionContextHolder.getSessionId();
         if (parentSessionId != null) {
             log.debug("子代理继承父会话ID: parentSessionId={}", parentSessionId);
@@ -298,6 +313,17 @@ public class AgentTool implements ToolCallback {
         // 没有父会话ID时，生成新的会话ID（向后兼容）
         log.debug("未找到父会话ID，生成新的子会话ID");
         return agent.getName() + "_" + UUID.randomUUID().toString().substring(0, 8);
+    }
+
+    private String resolveSessionId(ToolContext toolContext) {
+        if (toolContext == null || toolContext.getContext().isEmpty()) {
+            return null;
+        }
+        Object value = toolContext.getContext().get(AgentContext.TOOL_CONTEXT_SESSION_ID);
+        if (value instanceof String sessionId && !sessionId.isBlank()) {
+            return sessionId;
+        }
+        return null;
     }
 
     /**
