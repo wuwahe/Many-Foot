@@ -111,4 +111,17 @@ public class SandboxConfig {
      * {@code Media} 使用。路径格式：{localAttachmentPath}/{sessionId}/data/{filename}。
      */
     private String localAttachmentPath = System.getProperty("java.io.tmpdir") + "/many-foot-attachments";
+
+    /**
+     * 宿主机 pip 缓存目录路径。
+     * <p>
+     * 挂载到容器的 pip 缓存目录，使不同容器实例间共享已下载的包缓存，
+     * 避免每次创建新容器后重复从网络下载相同的 Python 包。
+     */
+    private String hostPipCachePath = System.getProperty("java.io.tmpdir") + "/many-foot-sandbox/pip-cache";
+
+    /**
+     * 容器内 pip 缓存目录路径。
+     */
+    private String containerPipCachePath = "/root/.cache/pip";
 }

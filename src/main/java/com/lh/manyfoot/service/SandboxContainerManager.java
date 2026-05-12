@@ -53,6 +53,11 @@ import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 @ConditionalOnProperty(prefix = "many-foot.sandbox", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class SandboxContainerManager {
 
+    private static final String APT_CACHE_DIR_NAME = "apt-cache";
+    private static final String APT_LISTS_DIR_NAME = "apt-lists";
+    private static final String CONTAINER_APT_CACHE_PATH = "/var/cache/apt";
+    private static final String CONTAINER_APT_LISTS_PATH = "/var/lib/apt/lists";
+
     private final DockerClient dockerClient;
     private final SandboxConfig sandboxConfig;
     private final ResourceLoader resourceLoader;
@@ -119,11 +124,33 @@ public class SandboxContainerManager {
                 Files.createDirectories(workDir);
             }
 
+            Path pipCacheDir = Path.of(sandboxConfig.getHostPipCachePath());
+            if (!Files.exists(pipCacheDir)) {
+                Files.createDirectories(pipCacheDir);
+            }
+
+            Path aptCacheDir = Path.of(sandboxConfig.getHostWorkspacePath(), APT_CACHE_DIR_NAME);
+            if (!Files.exists(aptCacheDir)) {
+                Files.createDirectories(aptCacheDir);
+            }
+            Files.createDirectories(aptCacheDir.resolve("archives/partial"));
+
+            Path aptListsDir = Path.of(sandboxConfig.getHostWorkspacePath(), APT_LISTS_DIR_NAME);
+            if (!Files.exists(aptListsDir)) {
+                Files.createDirectories(aptListsDir);
+            }
+            Files.createDirectories(aptListsDir.resolve("partial"));
+
             // 构建容器配置
             HostConfig hostConfig = HostConfig.newHostConfig()
                 .withMemory(sandboxConfig.getMemoryLimit() * 1024 * 1024) // 转换为字节
                 .withCpuCount(sandboxConfig.getCpuLimit().longValue())
-                .withBinds(new Bind(workspacePath, new Volume(sandboxConfig.getWorkspaceMount())))
+                .withBinds(
+                    new Bind(workspacePath, new Volume(sandboxConfig.getWorkspaceMount())),
+                    new Bind(sandboxConfig.getHostPipCachePath(), new Volume(sandboxConfig.getContainerPipCachePath()), AccessMode.rw),
+                    new Bind(aptCacheDir.toString(), new Volume(CONTAINER_APT_CACHE_PATH), AccessMode.rw),
+                    new Bind(aptListsDir.toString(), new Volume(CONTAINER_APT_LISTS_PATH), AccessMode.rw)
+                )
                 .withNetworkMode(sandboxConfig.getNetworkEnabled() ? sandboxConfig.getNetworkMode() : "none")
                 .withAutoRemove(false)
                 .withPrivileged(sandboxConfig.getPrivileged())
