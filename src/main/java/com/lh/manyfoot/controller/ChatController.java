@@ -1,17 +1,21 @@
 package com.lh.manyfoot.controller;
 
 import com.alibaba.cloud.ai.graph.NodeOutput;
-import com.alibaba.cloud.ai.graph.streaming.StreamingOutput;
 import com.lh.manyfoot.agent.context.AgentAttachment;
 import com.lh.manyfoot.agent.context.AgentContext;
 import com.lh.manyfoot.agent.context.SessionContextHolder;
 import com.lh.manyfoot.agent.impl.SupervisorAgent;
+import com.lh.manyfoot.agent.stream.ConversationEventStreamFactory;
+import com.lh.manyfoot.agent.stream.event.Complete;
+import com.lh.manyfoot.agent.stream.event.ConversationEvent;
+import com.lh.manyfoot.agent.stream.event.Failure;
+import com.lh.manyfoot.agent.stream.event.NarrationDelta;
+import com.lh.manyfoot.agent.stream.event.PhaseHint;
 import com.lh.manyfoot.controller.dto.ChatRequest;
 import com.lh.manyfoot.service.SandboxContainerManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,6 +26,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -35,6 +40,7 @@ public class ChatController {
 
     private final SupervisorAgent supervisorAgent;
     private final ObjectProvider<SandboxContainerManager> sandboxContainerManagerProvider;
+    private final ConversationEventStreamFactory eventStreamFactory;
     private final ExecutorService executor = Executors.newCachedThreadPool();
 
     @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
@@ -67,49 +73,17 @@ public class ChatController {
 
                 log.info("SSE 对话开始: sessionId={}", sessionId);
 
-                Flux<NodeOutput> flux = supervisorAgent.execute(context)
+                Flux<NodeOutput> raw = supervisorAgent.execute(context);
+                Flux<ConversationEvent> events = eventStreamFactory.create(raw, sessionId)
                         .doFinally(signalType -> {
                             log.debug("SSE 对话流结束，清理会话上下文: sessionId={}, signal={}", sessionId, signalType);
                             SessionContextHolder.clear();
                         });
 
-                flux.subscribe(
-                        nodeOutput -> {
-                            if (!(nodeOutput instanceof StreamingOutput<?> streaming)) return;
-                            if (!(streaming.message() instanceof AssistantMessage msg)) return;
-                            String text = msg.getText();
-                            if (text == null || text.isBlank()) return;
-                            try {
-                                emitter.send(SseEmitter.event()
-                                        .name("token")
-                                        .data(Map.of("content", text)));
-                            } catch (IOException e) {
-                                log.error("发送 token 事件失败", e);
-                                emitter.completeWithError(e);
-                            }
-                        },
-                        error -> {
-                            log.error("SSE 对话异常: sessionId={}", sessionId, error);
-                            try {
-                                emitter.send(SseEmitter.event()
-                                        .name("error")
-                                        .data(Map.of("error", String.valueOf(error.getMessage()))));
-                            } catch (IOException e) {
-                                log.error("发送错误事件失败", e);
-                            }
-                            emitter.completeWithError(error);
-                        },
-                        () -> {
-                            log.info("SSE 对话完成: sessionId={}", sessionId);
-                            try {
-                                emitter.send(SseEmitter.event()
-                                        .name("done")
-                                        .data(Map.of("sessionId", sessionId)));
-                            } catch (IOException e) {
-                                log.error("发送 done 事件失败", e);
-                            }
-                            emitter.complete();
-                        }
+                events.subscribe(
+                        ev -> sendEvent(emitter, ev, sessionId),
+                        err -> sendError(emitter, sessionId, err),    // 兜底；正常错误已变成 Failure 事件
+                        () -> log.info("SSE 对话完成: sessionId={}", sessionId)
                 );
             } catch (Exception e) {
                 log.error("启动 SSE 对话失败: sessionId={}", sessionId, e);
@@ -201,5 +175,37 @@ public class ChatController {
             throw new IllegalStateException("沙箱功能未启用，无法上传文件");
         }
         return sandboxContainerManager;
+    }
+
+    private void sendEvent(SseEmitter emitter, ConversationEvent ev, String sessionId) {
+        try {
+            if (ev instanceof NarrationDelta nd) {
+                emitter.send(SseEmitter.event().name("message").data(Map.of("text", nd.text())));
+            } else if (ev instanceof PhaseHint ph) {
+                emitter.send(SseEmitter.event().name("phase")
+                        .data(Map.of("phase", ph.phase().name().toLowerCase(Locale.ROOT))));
+            } else if (ev instanceof Complete c) {
+                emitter.send(SseEmitter.event().name("done").data(Map.of("sessionId", c.sessionId())));
+                emitter.complete();
+            } else if (ev instanceof Failure f) {
+                log.error("SSE 对话异常: sessionId={}", sessionId, f.cause());
+                emitter.send(SseEmitter.event().name("error").data(Map.of("error", f.userMessage())));
+                emitter.complete();   // 不 completeWithError；事件已经送达
+            }
+        } catch (IOException e) {
+            log.error("发送 SSE 事件失败: sessionId={}, type={}", sessionId, ev.getClass().getSimpleName(), e);
+            emitter.completeWithError(e);
+        }
+    }
+
+    private void sendError(SseEmitter emitter, String sessionId, Throwable err) {
+        // 兜底：正常情况下 translator 已经把异常包成了 Failure 事件；这里只兜住订阅链异常
+        log.error("SSE 订阅链异常: sessionId={}", sessionId, err);
+        try {
+            emitter.send(SseEmitter.event().name("error").data(Map.of("error", String.valueOf(err.getMessage()))));
+        } catch (IOException e) {
+            log.error("发送 error 事件失败", e);
+        }
+        emitter.completeWithError(err);
     }
 }

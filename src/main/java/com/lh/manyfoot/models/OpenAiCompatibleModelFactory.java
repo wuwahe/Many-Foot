@@ -15,6 +15,11 @@ import org.springframework.ai.openai.OpenAiEmbeddingOptions;
 import org.springframework.ai.openai.api.OpenAiApi;
 import org.springframework.ai.retry.RetryUtils;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.reactive.function.client.WebClient;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * OpenAI 协议兼容厂商通用工厂。
@@ -65,6 +70,7 @@ public class OpenAiCompatibleModelFactory implements AiModelFactory {
         ChatOptionsBinder.bindFrequencyPenalty(config.getOptions(), options::setFrequencyPenalty);
         ChatOptionsBinder.bindSeed(config.getOptions(), options::setSeed);
         ChatOptionsBinder.bindStop(config.getOptions(), options::setStop);
+        bindOpenAiSpecificOptions(config.getOptions(), options);
         if (!config.getHeaders().isEmpty()) {
             options.setHttpHeaders(config.getHeaders());
         }
@@ -114,5 +120,26 @@ public class OpenAiCompatibleModelFactory implements AiModelFactory {
             return normalized.substring(0, normalized.length() - "/v1".length());
         }
         return normalized;
+    }
+
+    @SuppressWarnings("unchecked")
+    private void bindOpenAiSpecificOptions(Map<String, Object> rawOptions, OpenAiChatOptions options) {
+        Object extraBody = ChatOptionsBinder.findValue(rawOptions, "extra-body", "extraBody");
+        if (extraBody instanceof Map<?, ?> map) {
+            Map<String, Object> converted = new LinkedHashMap<>();
+            for (Map.Entry<?, ?> entry : map.entrySet()) {
+                if (entry.getKey() != null) {
+                    converted.put(entry.getKey().toString(), entry.getValue());
+                }
+            }
+            if (!converted.isEmpty()) {
+                options.setExtraBody(converted);
+            }
+        }
+
+        Object reasoningEffort = ChatOptionsBinder.findValue(rawOptions, "reasoning-effort", "reasoningEffort");
+        if (reasoningEffort != null) {
+            options.setReasoningEffort(reasoningEffort.toString());
+        }
     }
 }

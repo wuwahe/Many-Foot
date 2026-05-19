@@ -3,6 +3,9 @@ target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
+.sisyphus
+.lingma
+.claude
 
 ### STS ###
 .apt_generated
