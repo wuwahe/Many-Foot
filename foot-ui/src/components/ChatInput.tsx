@@ -18,6 +18,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled, isStreaming, se
   const [uploadError, setUploadError] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isComposingRef = useRef(false);
 
   const adjustHeight = () => {
     const textarea = textareaRef.current;
@@ -64,7 +65,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled, isStreaming, se
     setAttachments(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = (event?: React.FormEvent) => {
+  const handleSubmit = (event?: React.SyntheticEvent<HTMLFormElement>) => {
     event?.preventDefault();
     if ((!text.trim() && attachments.length === 0) || disabled || isStreaming) return;
     onSend(text, attachments.length > 0 ? attachments : undefined);
@@ -74,10 +75,21 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled, isStreaming, se
   };
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
+    // 输入法组合态下的 Enter 是确认候选词，不应触发消息发送。
+    if (isComposingRef.current || event.nativeEvent.isComposing) return;
+
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
       handleSubmit();
     }
+  };
+
+  const handleCompositionStart = () => {
+    isComposingRef.current = true;
+  };
+
+  const handleCompositionEnd = () => {
+    isComposingRef.current = false;
   };
 
   const canSend = (Boolean(text.trim()) || attachments.length > 0) && !disabled && !isStreaming;
@@ -146,6 +158,8 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled, isStreaming, se
           ref={textareaRef}
           value={text}
           onChange={(event) => setText(event.target.value)}
+          onCompositionStart={handleCompositionStart}
+          onCompositionEnd={handleCompositionEnd}
           onKeyDown={handleKeyDown}
           disabled={disabled || isStreaming}
           placeholder={attachments.length > 0 ? "添加消息（可选）..." : "输入消息，开始对话..."}
