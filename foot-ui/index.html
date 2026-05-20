@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ManyFoot Supervisor</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              brand: {
+                primary: '#0891B2',
+                secondary: '#06B6D4',
+                light: '#ECFEFF',
+              },
+            },
+            fontFamily: {
+              sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+              mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+            },
+            typography: {
+              DEFAULT: {
+                css: {
+                  color: '#374151',
+                  fontFamily: "'Inter', system-ui, sans-serif",
+                  a: {
+                    color: '#0891B2',
+                    textDecoration: 'none',
+                    '&:hover': { color: '#0E7490' },
+                  },
+                  strong: { color: '#111827' },
+                  code: {
+                    color: '#0891B2',
+                    backgroundColor: '#F0FDFA',
+                    border: '1px solid #CFFAFE',
+                    padding: '0.2rem 0.35rem',
+                    borderRadius: '0.35rem',
+                    fontWeight: '400',
+                    fontFamily: "'JetBrains Mono', monospace",
+                  },
+                  'code::before': { content: '""' },
+                  'code::after': { content: '""' },
+                  pre: {
+                    backgroundColor: '#020617',
+                    color: '#F8FAFC',
+                    border: '1px solid rgba(34, 211, 238, 0.25)',
+                    borderRadius: '0.75rem',
+                  },
+                  'pre code': {
+                    backgroundColor: 'transparent',
+                    border: '0',
+                    padding: '0',
+                    borderRadius: '0',
+                  },
+                  table: {
+                    borderColor: '#E5E7EB',
+                    borderCollapse: 'collapse',
+                    width: '100%',
+                  },
+                  th: {
+                    borderColor: '#E5E7EB',
+                    backgroundColor: '#F9FAFB',
+                    color: '#111827',
+                    padding: '0.75rem',
+                  },
+                  td: {
+                    borderColor: '#E5E7EB',
+                    padding: '0.75rem',
+                  },
+                  blockquote: {
+                    borderColor: '#0891B2',
+                    color: '#6B7280',
+                  },
+                },
+              },
+            },
+          },
+        },
+        plugins: []
+      }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+      html, body, #root { height: 100%; }
+      body { margin: 0; background: #FFFFFF; color: #374151; }
+      .markdown-body pre {
+        background-color: #020617;
+        color: #F8FAFC;
+        border: 1px solid rgba(34, 211, 238, 0.25);
+        border-radius: 0.75rem;
+        padding: 1rem;
+        overflow-x: auto;
+      }
+      ::selection { background: rgba(8,145,178,0.15); color: #111827; }
+      ::-webkit-scrollbar { width: 8px; height: 8px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 999px; }
+      ::-webkit-scrollbar-thumb:hover { background: #9CA3AF; }
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          scroll-behavior: auto !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
