@@ -37,12 +37,6 @@
             <artifactId>spring-boot-starter-aop</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>org.springframework.ai</groupId>
-            <artifactId>spring-ai-starter-mcp-client-webflux</artifactId>
-            <version>${spring-ai.version}</version>
-        </dependency>
-
         <!-- Guava (覆盖低版本，google-genai 需要 31.0+) -->
         <dependency>
             <groupId>com.google.guava</groupId>

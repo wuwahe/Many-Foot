@@ -10,21 +10,10 @@ spring:
   ai:
     # 以下两段为 Spring AI starter 的自动装配开关，保留兼容（部分 starter 会读它）
     dashscope:
-      api-key: ${DASHSCOPE_API_KEY:}
+      api-key: 默认占位
     google:
       genai:
-        api-key: ${GOOGLE_GENAI_API_KEY:}
-    mcp:
-      client:
-        enabled: true
-        name: ${spring.application.name}
-        version: 1.0.0
-        request-timeout: 30s
-        sse:
-          connections:
-            WebSearch:
-              url: https://dashscope.aliyuncs.com
-              sse-endpoint: /api/v1/mcps/WebSearch/sse
+        api-key: 默认占位
 
 logging:
   level:
@@ -163,6 +152,31 @@ many-foot:
   #  redis-key-prefix: "manyfoot:execution"
   #  # 单次执行最大步骤数（防溢出）
   #  max-steps-per-execution: 50
+
+  search:
+    enabled: true
+    brave:
+      api-key: ${BRAVE_SEARCH_API_KEY:}
+      base-url: https://api.search.brave.com/res/v1/web/search
+      default-count: 5
+      max-count: 10
+      timeout-seconds: 15
+      max-retries: 3
+    jina:
+      api-key: ${JINA_API_KEY:}
+      reader-url: https://r.jina.ai/
+      search-url: https://s.jina.ai/
+      timeout-seconds: 30
+      stream-timeout-seconds: 60
+    extraction:
+      max-concurrency: 3
+      max-content-chars: 12000
+    cache:
+      enabled: true
+    rate-limit:
+      enabled: true
+      max-searches-per-session: 5
+      max-extractions-per-session: 10
 
   sandbox: # 是否启用沙箱功能
     enabled: true

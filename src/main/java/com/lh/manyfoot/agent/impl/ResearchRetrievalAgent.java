@@ -6,10 +6,12 @@ import com.lh.manyfoot.agent.domain.EvidencePack;
 import com.lh.manyfoot.agent.domain.ResearchBrief;
 import com.lh.manyfoot.agent.prompt.ResearchRetrievalPromptProvider;
 import com.lh.manyfoot.agent.strategy.SyncCallStrategy;
+import com.lh.manyfoot.agent.support.BudgetLimitedToolCallback;
 import com.lh.manyfoot.agent.support.SpecialistJsonUtils;
 import com.lh.manyfoot.agent.tool.FullToolProvider;
 import com.lh.manyfoot.models.registry.ModelResolver;
 import com.lh.manyfoot.models.registry.ModelRole;
+import org.springframework.ai.tool.ToolCallback;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -62,15 +64,39 @@ public class ResearchRetrievalAgent extends AbstractToolAgent<String> {
                 .build();
     }
 
+    /**
+     * 单次任务最多允许的搜索工具调用次数。
+     */
+    private static final int SEARCH_BUDGET = 3;
+
     @Override
     protected Set<String> getAvailableTools() {
         return Set.of(
-                "bailian_web_search"
+            "webSearch",
+            "deepResearch",
+            "batchFetchPages",
+            "webFetchPage",
+            "newsSearch"
         );
+    }
+
+    /**
+     * 为搜索工具添加调用预算限制，防止 ReAct 循环无节制地反复搜索。
+     */
+    @Override
+    protected List<ToolCallback> getTools() {
+        List<ToolCallback> tools = super.getTools();
+        return tools.stream()
+                .map(tool -> BudgetLimitedToolCallback.builder()
+                        .delegate(tool)
+                        .maxCalls(SEARCH_BUDGET)
+                        .build())
+                .map(ToolCallback.class::cast)
+                .toList();
     }
 
     @Override
     protected Set<String> getAvailableSkills() {
-        return Set.of("");
+        return Set.of();
     }
 }
