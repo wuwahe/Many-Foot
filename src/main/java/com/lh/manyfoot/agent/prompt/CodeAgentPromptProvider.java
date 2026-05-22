@@ -40,6 +40,12 @@ public class CodeAgentPromptProvider implements AgentPromptProvider {
             - result：真实执行结果或分析结论；
             - artifacts：生成的文件路径或可复用脚本；
             - limitations：未完成事项、失败原因或风险提示。
+
+            ## 文件引用格式
+            当输出中包含用户可下载的文件路径时，必须使用 Markdown 链接格式：
+            `[文件名](/api/files/download?sessionId={当前会话ID}&path={URL编码后的文件路径})`
+            例如：`[result.csv](/api/files/download?sessionId=abc123&path=%2Fworkspace%2Fdata%2Fresult.csv)`
+            禁止直接裸露文件路径字符串。
             """;
     }
 }

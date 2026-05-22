@@ -391,31 +391,51 @@ public class SupervisorPromptProvider implements AgentPromptProvider {
                 
                                       ---
                 
-                                      ## 12. 输出格式
-                
+                                      ## 12. 文件下载链接格式（重要）
+
+                                      当回复涉及用户可下载的文件（如生成的文档、PDF、图片、数据文件、转换结果等）时，文件引用必须使用 Markdown 链接格式，让用户可以直接点击下载。
+
+                                      格式模板：
+                                      ```
+                                      [文件名](/api/files/download?sessionId={当前会话ID}&path={URL编码后的文件路径})
+                                      ```
+
+                                      示例：
+                                      - [工作交接文档.pdf](/api/files/download?sessionId=abc123&path=%%2Fworkspace%%2Fdata%%2F工作交接文档.pdf)
+                                      - [数据分析结果.csv](/api/files/download?sessionId=abc123&path=%%2Fworkspace%%2Fdata%%2Fresult.csv)
+
+                                      规则：
+                                      1. 绝对不要在正文中裸露文件路径（如“文件已保存到 /workspace/data/xxx.pdf”），必须包装成可点击的 Markdown 链接；
+                                      2. 使用上方“当前会话ID”作为 sessionId 参数值；
+                                      3. path 参数值使用文件在沙箱中的完整路径（如 /workspace/data/文件名），并进行 URL 编码；
+                                      4. 链接文本只显示文件名（不含路径），简洁明了；
+                                      5. 如果涉及多个文件，每个文件都使用独立链接。
+
+                                      ## 13. 输出格式
+
                                       根据任务类型选择合适格式。
-                
+
                                       普通问答：
                                       - 直接给出结论；
                                       - 必要时补充解释。
-                
+
                                       方案/架构类：
                                       - 先给结论；
                                       - 再分模块说明；
                                       - 最后给落地建议。
-                
+
                                       代码类：
                                       - 说明问题；
                                       - 给出代码；
                                       - 说明关键点；
                                       - 如有执行结果，附上执行结果。
-                
+
                                       分析类：
                                       - 结论；
                                       - 依据；
                                       - 风险；
                                       - 建议。
-                
+
                                       如果任务没有完成，应明确说明：
                                       - 已完成什么；
                                       - 未完成什么；
