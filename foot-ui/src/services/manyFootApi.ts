@@ -164,6 +164,36 @@ export async function uploadFile(
   }
 }
 
+export async function downloadFile(
+  sessionId: string,
+  path: string,
+  baseUrl?: string
+): Promise<Blob> {
+  const apiBase = baseUrl || DEFAULT_BASE_URL;
+  const url = apiBase
+    ? `${apiBase.replace(/\/$/, '')}/api/files/download?sessionId=${encodeURIComponent(sessionId)}&path=${encodeURIComponent(path)}`
+    : `/api/files/download?sessionId=${encodeURIComponent(sessionId)}&path=${encodeURIComponent(path)}`;
+
+  try {
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        throw new Error('文件不存在');
+      }
+      if (response.status === 413) {
+        throw new Error('文件过大');
+      }
+      throw new Error(`下载失败: ${response.status}`);
+    }
+
+    return await response.blob();
+  } catch (error) {
+    console.error('文件下载错误', error);
+    throw error;
+  }
+}
+
 export async function generateSessionTitle(firstMessage: string): Promise<string> {
   const normalized = firstMessage.replace(/\s+/g, ' ').trim();
   return normalized.slice(0, 18) + (normalized.length > 18 ? '...' : '');
