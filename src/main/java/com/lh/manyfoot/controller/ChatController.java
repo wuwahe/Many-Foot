@@ -13,6 +13,8 @@ import com.lh.manyfoot.agent.stream.event.NarrationDelta;
 import com.lh.manyfoot.agent.stream.event.PhaseHint;
 import com.lh.manyfoot.controller.dto.ChatRequest;
 import com.lh.manyfoot.service.SandboxContainerManager;
+import com.lh.manyfoot.service.file.FileStorageService;
+import com.lh.manyfoot.service.file.UploadedFileInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
@@ -41,6 +43,7 @@ public class ChatController {
     private final SupervisorAgent supervisorAgent;
     private final ObjectProvider<SandboxContainerManager> sandboxContainerManagerProvider;
     private final ConversationEventStreamFactory eventStreamFactory;
+    private final FileStorageService fileStorageService;
     private final ExecutorService executor = Executors.newCachedThreadPool();
 
     @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
@@ -103,15 +106,12 @@ public class ChatController {
 
     @PostMapping("/upload")
     public Map<String, String> upload(@RequestParam String sessionId,
-                                       @RequestParam MultipartFile file) throws IOException {
-        SandboxContainerManager sandboxContainerManager = requireSandboxContainerManager();
-        String containerPath = sandboxContainerManager.uploadFile(sessionId,
-                file.getOriginalFilename(), file.getBytes());
-        String mimeType = detectMimeType(file.getOriginalFilename(), file.getContentType(), containerPath);
+                                       @RequestParam MultipartFile file) {
+        UploadedFileInfo info = fileStorageService.upload(sessionId, file);
         return Map.of(
-                "path", containerPath,
-                "mimeType", mimeType,
-                "type", isImage(mimeType) ? "image" : "file"
+                "path", info.getPath(),
+                "mimeType", info.getMimeType(),
+                "type", info.getType()
         );
     }
 
@@ -167,14 +167,6 @@ public class ChatController {
 
     private boolean isImage(String mimeType) {
         return mimeType != null && mimeType.toLowerCase().startsWith("image/");
-    }
-
-    private SandboxContainerManager requireSandboxContainerManager() {
-        SandboxContainerManager sandboxContainerManager = sandboxContainerManagerProvider.getIfAvailable();
-        if (sandboxContainerManager == null) {
-            throw new IllegalStateException("沙箱功能未启用，无法上传文件");
-        }
-        return sandboxContainerManager;
     }
 
     private void sendEvent(SseEmitter emitter, ConversationEvent ev, String sessionId) {

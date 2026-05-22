@@ -11,6 +11,7 @@ import com.lh.manyfoot.agent.stream.event.NarrationDelta;
 import com.lh.manyfoot.agent.stream.event.PhaseHint;
 import com.lh.manyfoot.controller.dto.ChatRequest;
 import com.lh.manyfoot.service.SandboxContainerManager;
+import com.lh.manyfoot.service.file.FileStorageService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -62,6 +63,9 @@ class ChatControllerSseTest {
 
     @MockBean
     private ConversationEventStreamFactory eventStreamFactory;
+
+    @MockBean
+    private FileStorageService fileStorageService;
 
     /**
      * 验证 SSE 流包含 phase、message、done 三种事件。
