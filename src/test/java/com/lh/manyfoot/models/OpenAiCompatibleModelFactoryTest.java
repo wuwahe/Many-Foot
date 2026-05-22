@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 class OpenAiCompatibleModelFactoryTest {
 
-    private final OpenAiCompatibleModelFactory factory = new OpenAiCompatibleModelFactory(new MiMoThinkingModeInterceptor());
+    private final OpenAiCompatibleModelFactory factory = new OpenAiCompatibleModelFactory();
 
     @Test
     void createChatModel_shouldPropagateExtraBodyOptions() {
