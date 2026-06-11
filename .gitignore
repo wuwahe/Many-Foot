@@ -47,3 +47,6 @@ dist-ssr/
 .playwright-mcp/
 .DS_Store
 *.local
+
+### Documentation ###
+docs/blogs/
