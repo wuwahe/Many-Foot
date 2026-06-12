@@ -39,7 +39,7 @@ many-foot:
     providers:
       supervisor:
         vendor: openai-compatible
-        model: mimo-v2.5-pro
+        model: qwen3.7-max
         api-key: ${MANY_FOOT_API_KEY:}
         base-url: ${MANY_FOOT_BASE_URL:}
         options:
@@ -52,7 +52,7 @@ many-foot:
               thinking: false
       coder:
         vendor: openai-compatible
-        model: mimo-v2.5-pro
+        model: qwen3.7-max
         api-key: ${MANY_FOOT_API_KEY:}
         base-url: ${MANY_FOOT_BASE_URL:}
         options:
@@ -63,7 +63,7 @@ many-foot:
               thinking: false
       fast:
         vendor: openai-compatible
-        model: mimo-v2.5
+        model: qwen3.6-plus
         api-key: ${MANY_FOOT_API_KEY:}
         base-url: ${MANY_FOOT_BASE_URL:}
         multimodal: true
@@ -75,7 +75,7 @@ many-foot:
               thinking: false
       backup:
         vendor: openai-compatible
-        model: mimo-v2.5-pro
+        model: qwen3.6-flash
         api-key: ${MANY_FOOT_API_KEY:}
         base-url: ${MANY_FOOT_BASE_URL:}
         options:
