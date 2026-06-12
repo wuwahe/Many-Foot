@@ -9,7 +9,7 @@ import com.lh.manyfoot.agent.stream.event.ConversationEvent;
 import com.lh.manyfoot.agent.stream.event.Failure;
 import com.lh.manyfoot.agent.stream.event.NarrationDelta;
 import com.lh.manyfoot.agent.stream.event.PhaseHint;
-import com.lh.manyfoot.controller.dto.ChatRequest;
+import com.lh.manyfoot.dto.ChatRequest;
 import com.lh.manyfoot.service.SandboxContainerManager;
 import com.lh.manyfoot.service.file.FileStorageService;
 import org.junit.jupiter.api.Test;

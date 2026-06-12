@@ -1,4 +1,4 @@
-package com.lh.manyfoot.controller.dto;
+package com.lh.manyfoot.dto;
 
 import lombok.Data;
 
