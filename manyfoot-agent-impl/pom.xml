@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.lh</groupId>
+        <artifactId>ManyFoot</artifactId>
+        <version>0.9.1</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>manyfoot-agent-impl</artifactId>
+    <name>manyfoot-agent-impl</name>
+    <description>ManyFoot 智能体实现模块 - 包含具体智能体实现、提示词提供者、注册表和流式处理</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.lh</groupId>
+            <artifactId>manyfoot-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.lh</groupId>
+            <artifactId>manyfoot-config</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.lh</groupId>
+            <artifactId>manyfoot-models</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.lh</groupId>
+            <artifactId>manyfoot-agent-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.lh</groupId>
+            <artifactId>manyfoot-tools</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba.cloud.ai</groupId>
+            <artifactId>spring-ai-alibaba-agent-framework</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+    </dependencies>
+</project>

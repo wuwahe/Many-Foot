@@ -2,11 +2,13 @@ import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import type { Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Bot, Brain, Check, ChevronDown, ChevronRight, Copy, File, Loader2, MessageCircle, User, Wrench } from 'lucide-react';
+import { Bot, Brain, Check, ChevronDown, ChevronRight, Copy, Download, File, Loader2, MessageCircle, User, Wrench } from 'lucide-react';
 import { ChatPhase, Message, Role } from '../types';
+import { downloadFile } from '../services/manyFootApi';
 
 interface ChatMessageProps {
   message: Message;
+  sessionId?: string;
 }
 
 const getNodeText = (node: React.ReactNode): string => {
@@ -85,10 +87,11 @@ const MarkdownContent: React.FC<{ children: string }> = ({ children }) => (
   <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>{children}</ReactMarkdown>
 );
 
-const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
+const ChatMessage: React.FC<ChatMessageProps> = ({ message, sessionId }) => {
   const isUser = message.role === Role.USER;
   const [copied, setCopied] = React.useState(false);
   const [draftCollapsed, setDraftCollapsed] = React.useState(false);
+  const [downloading, setDownloading] = React.useState<string | null>(null);
 
   const phaseConfig: Record<ChatPhase, { label: string; icon: React.ReactNode }> = {
     thinking: { label: '正在思考…', icon: <Brain size={12} /> },
@@ -114,6 +117,27 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       console.error('复制文本失败', error);
+    }
+  };
+
+  const handleDownload = async (path: string, filename: string) => {
+    if (!sessionId || downloading) return;
+    setDownloading(path);
+    try {
+      const blob = await downloadFile(sessionId, path);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('下载文件失败', error);
+      alert('下载文件失败: ' + (error instanceof Error ? error.message : '未知错误'));
+    } finally {
+      setDownloading(null);
     }
   };
 
@@ -157,6 +181,21 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
               >
                 <File size={12} className="text-brand-primary" />
                 <span className="max-w-[120px] truncate text-gray-700">{attachment.name}</span>
+                {sessionId && (
+                  <button
+                    type="button"
+                    onClick={() => handleDownload(attachment.path, attachment.name)}
+                    disabled={downloading === attachment.path}
+                    className="ml-1 text-gray-400 hover:text-brand-primary transition-colors duration-200 disabled:opacity-50"
+                    title="下载文件"
+                  >
+                    {downloading === attachment.path ? (
+                      <Loader2 size={12} className="animate-spin" />
+                    ) : (
+                      <Download size={12} />
+                    )}
+                  </button>
+                )}
               </div>
             ))}
           </div>

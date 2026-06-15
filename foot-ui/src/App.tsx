@@ -392,7 +392,7 @@ function App() {
             ) : (
               <div className="flex flex-col pb-4">
                 {currentSession.messages.map((message) => (
-                  <ChatMessage key={message.id} message={message} />
+                  <ChatMessage key={message.id} message={message} sessionId={currentSession.id} />
                 ))}
                 <div ref={messagesEndRef} className="h-4" />
               </div>
