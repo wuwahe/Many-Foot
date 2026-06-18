@@ -8,8 +8,6 @@ import {
   UploadResponse,
 } from '../types';
 
-const DEFAULT_BASE_URL = '';
-
 const chatEventTypes: ChatEventType[] = [
   'phase',
   'message',
@@ -79,16 +77,12 @@ const parseSSEBlock = (block: string): ChatEvent | null => {
 export async function* streamChatResponse(
   sessionId: string,
   message: string,
-  baseUrl?: string,
   filePaths?: string[]
 ): AsyncGenerator<ChatEvent, void, unknown> {
-  const apiBase = baseUrl || DEFAULT_BASE_URL;
-  const url = apiBase ? `${apiBase.replace(/\/$/, '')}/api/chat/stream` : '/api/chat/stream';
-
   try {
     const body: Record<string, unknown> = { sessionId, message, filePaths: filePaths ?? [] };
 
-    const response = await fetch(url, {
+    const response = await fetch('/api/chat/stream', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -137,18 +131,14 @@ export async function* streamChatResponse(
 
 export async function uploadFile(
   sessionId: string,
-  file: File,
-  baseUrl?: string
+  file: File
 ): Promise<UploadResponse> {
-  const apiBase = baseUrl || DEFAULT_BASE_URL;
-  const url = apiBase ? `${apiBase.replace(/\/$/, '')}/api/chat/upload` : '/api/chat/upload';
-
   const formData = new FormData();
   formData.append('sessionId', sessionId);
   formData.append('file', file);
 
   try {
-    const response = await fetch(url, {
+    const response = await fetch('/api/chat/upload', {
       method: 'POST',
       body: formData,
     });
@@ -166,13 +156,9 @@ export async function uploadFile(
 
 export async function downloadFile(
   sessionId: string,
-  path: string,
-  baseUrl?: string
+  path: string
 ): Promise<Blob> {
-  const apiBase = baseUrl || DEFAULT_BASE_URL;
-  const url = apiBase
-    ? `${apiBase.replace(/\/$/, '')}/api/files/download?sessionId=${encodeURIComponent(sessionId)}&path=${encodeURIComponent(path)}`
-    : `/api/files/download?sessionId=${encodeURIComponent(sessionId)}&path=${encodeURIComponent(path)}`;
+  const url = `/api/files/download?sessionId=${encodeURIComponent(sessionId)}&path=${encodeURIComponent(path)}`;
 
   try {
     const response = await fetch(url);

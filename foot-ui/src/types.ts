@@ -57,10 +57,6 @@ export interface Session {
   updatedAt: number;
 }
 
-export interface AppSettings {
-  baseUrl: string;
-}
-
 export interface UploadResponse {
   path: string;
   mimeType: string;

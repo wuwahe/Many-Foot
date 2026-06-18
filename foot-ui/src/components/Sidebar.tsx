@@ -1,5 +1,5 @@
 import React from 'react';
-import { MessageSquare, MessageSquarePlus, Settings, Trash2, X } from 'lucide-react';
+import { MessageSquare, MessageSquarePlus, Trash2, X } from 'lucide-react';
 import { Session } from '../types';
 
 interface SidebarProps {
@@ -10,7 +10,6 @@ interface SidebarProps {
   onDeleteSession: (event: React.MouseEvent, id: string) => void;
   isOpen: boolean;
   onCloseMobile: () => void;
-  onOpenSettings: () => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -21,7 +20,6 @@ const Sidebar: React.FC<SidebarProps> = ({
   onDeleteSession,
   isOpen,
   onCloseMobile,
-  onOpenSettings,
 }) => {
   const sortedSessions = [...sessions].sort((a, b) => b.updatedAt - a.updatedAt);
 
@@ -104,16 +102,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           </div>
         </div>
 
-        <div className="space-y-3 border-t border-gray-100 p-4">
-          <button
-            type="button"
-            onClick={onOpenSettings}
-            className="flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2 text-sm text-gray-600 transition-colors duration-200 hover:bg-gray-50 hover:text-gray-900"
-          >
-            <Settings size={18} />
-            设置
-          </button>
-
+        <div className="border-t border-gray-100 p-4">
           <div className="flex items-center gap-3 rounded-xl bg-gray-50 px-3 py-3 text-sm text-gray-500">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-primary text-xs font-medium text-white">
               MF

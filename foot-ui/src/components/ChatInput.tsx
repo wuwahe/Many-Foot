@@ -8,10 +8,9 @@ interface ChatInputProps {
   disabled: boolean;
   isStreaming: boolean;
   sessionId: string;
-  baseUrl?: string;
 }
 
-const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled, isStreaming, sessionId, baseUrl }) => {
+const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled, isStreaming, sessionId }) => {
   const [text, setText] = useState('');
   const [attachments, setAttachments] = useState<FileAttachment[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -40,7 +39,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSend, disabled, isStreaming, se
     setUploadError(null);
 
     try {
-      const result = await uploadFile(sessionId, file, baseUrl);
+      const result = await uploadFile(sessionId, file);
 
       const attachment: FileAttachment = {
         name: file.name,
